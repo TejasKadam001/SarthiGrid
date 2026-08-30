@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="mr">
+
+<head>
+
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title data-i18n="site_title">आरोग्य संपन्न वारी</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#35298a">
+  <link rel="stylesheet" href="./assets/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="./assets/css/app.css">
+  <script>
+    (function () {
+      if (!('serviceWorker' in navigator)) return;
+      let FLAG = 'wariCached', toast = null;
+      function setStatus(txt) {
+        let el = document.getElementById('offlineStatus');
+        if (el) el.innerHTML = txt;
+      }
+      function setOff(txt) {
+        setStatus(txt);
+        try { localStorage.setItem(FLAG, '1') } catch (e) { }
+      }
+
+      // Register SW
+      navigator.serviceWorker.register('./sw.js').then(function (reg) {
+        reg.addEventListener('updatefound', function () {
+          let w = reg.installing;
+          w.addEventListener('statechange', function () {
+            if (w.state !== 'installed') return;
+            if (navigator.serviceWorker.controller) {
+              setOff('ऑफलाईन अद्ययावत केले (Reload करा)');
+            } else {
+              setOff('ऑफलाईन वारी तयार');
+            }
+          });
+        });
+      }).catch(function () { });
+
+      // Liveness listener
+      navigator.serviceWorker.addEventListener('message', function (e) {
+        if (e.data && e.data.type === 'TILES_PROGRESS') {
+          setStatus('नकाशा डाऊनलोड: ' + Math.round(e.data.percent) + '%');
+        }
+      });
+
+      navigator.serviceWorker.ready.then(function () {
+        setOff('ऑफलाईन तयार');
+        function bgSync() { try { if (navigator.onLine && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({ type: 'SYNC_NOW' }); } catch (e) { } }
+        bgSync(); window.addEventListener('online', bgSync);
+      }).catch(function () { });
+    })();
+  </script>
+</head>
+
+<body>
+
+  <!-- Site Header Navbar -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="logo-area">
+        <img src="./logo.png" alt="Logo" class="logo-img">
+      </div>
+      <nav class="nav-links">
+        <a href="#home" class="nav-link active" data-i18n="nav_home">Home</a>
+        <a href="#live-tracking" class="nav-link" data-i18n="nav_live">Live Tracking</a>
+        <a href="#about" class="nav-link" data-i18n="nav_route">Route Map</a>
+        <a href="#faqs" class="nav-link" data-i18n="nav_faqs">FAQs</a>
+        <a href="#emergency" class="nav-link" data-i18n="nav_emergency">Emergency</a>
+        <a href="./truck-register.html" class="nav-link" data-i18n="nav_driver_reg">Driver Reg</a>
+        <a href="./login.html" class="nav-link portal-link" data-i18n="nav_portal_login">Portal Login</a>
+      </nav>
+      <div class="cta-area">
+        <div class="lang-switch">
+          <button class="lang-btn active" data-lang="mr" onclick="switchLanguage('mr')">मराठी</button>
+          <span class="lang-sep">|</span>
+          <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')">English</button>
+        </div>
+        <a href="#live-tracking" class="btn-track-live" data-i18n="btn_track_live">Track Live <svg viewBox="0 0 24 24"
+            width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:4px">
+            <line x1="7" y1="17" x2="17" y2="7"></line>
+            <polyline points="7 7 17 7 17 17"></polyline>
+          </svg></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+      <div class="hero-container">
+        <div class="hero-content">
+          <h1 data-i18n="hero_title">Track the Palkhi Journey in Real Time.</h1>
+          <p class="hero-desc" data-i18n="hero_desc">Stay connected with the sacred Wari journey. View the live
+            location, route updates, estimated arrival times, and important announcements throughout the pilgrimage.</p>
+
+          <div class="palkhi-status-dot">
+            <span class="status-dot green"></span>
+            <span data-i18n="hero_status_dot">Both Palkhis have exited Pune City Jurisdiction. Tracking is
+              Closed.</span>
+          </div>
+
+          <div class="palkhi-status-cards">
+            <div class="status-card">
+              <div class="status-card-header">
+                <span class="palkhi-dot tukaram"></span>
+                <span data-i18n="tukaram_palkhi">Sant Tukaram Maharaj Palkhi</span>
+              </div>
+              <div class="status-card-body">
+                <div class="status-item">
+                  <span class="label"><span data-i18n="current_stop">Current Stop</span></span>
+                  <span class="value"><span data-i18n="tracking_closed">Tracking Closed</span></span>
+                </div>
+                <div class="status-item">
+                  <span class="label"><span data-i18n="last_updated">Last Updated</span></span>
+                  <span class="value">-</span>
+                </div>
+              </div>
+            </div>
+            <div class="status-card">
+              <div class="status-card-header">
+                <span class="palkhi-dot dnyaneshwar"></span>
+                <span data-i18n="dnyaneshwar_palkhi">Sant Dnyaneshwar Maharaj Palkhi</span>
+              </div>
+              <div class="status-card-body">
+                <div class="status-item">
+                  <span class="label"><span data-i18n="current_stop">Current Stop</span></span>
+                  <span class="value"><span data-i18n="tracking_closed">Tracking Closed</span></span>
+                </div>
+                <div class="status-item">
+                  <span class="label"><span data-i18n="last_updated">Last Updated</span></span>
+                  <span class="value">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <a href="#about" class="btn-about-us"><span data-i18n="btn_about_us">About Us</span> <svg viewBox="0 0 24 24"
+              width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:4px">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg></a>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Impact & Progress Section -->
+    <section class="impact-section" id="about">
+      <div class="impact-container">
+        <div class="impact-image-side">
+          <div class="image-wrapper">
+            <img src="./assets/img/palkhi-procession.jpg" alt="Wari Procession" class="impact-img">
+          </div>
+          <div class="impact-img-card">
+            <span class="title">Live Palkhi Tracking</span>
+            <span class="value">250+ km</span>
+            <span class="sub">Pilgrimage Route</span>
+            <a href="#live-tracking" class="btn-emergency">Emergency <svg viewBox="0 0 24 24" width="14" height="14"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                style="display:inline-block;vertical-align:middle;margin-left:4px">
+                <line x1="7" y1="17" x2="17" y2="7"></line>
+                <polyline points="7 7 17 7 17 17"></polyline>
+              </svg></a>
+          </div>
+        </div>
+        <div class="impact-content-side">
+          <span class="badge">Impact</span>
+          <h2>Connecting Millions Through the Sacred Wari</h2>
+          <p data-i18n="impact_desc">Experience the Wari like never before with live GPS tracking, route updates, halt
+            locations, and estimated arrival times. Our platform helps devotees, volunteers, and visitors stay informed
+            throughout the sacred journey.</p>
+
+          <div class="progress-meters">
+            <div class="meter-item">
+              <div class="meter-header">
+                <span class="label"><span data-i18n="impact_today_journey">Today's Journey</span></span>
+                <span class="val">25 km / 31 km</span>
+              </div>
+              <div class="meter-bar">
+                <div class="meter-fill red" style="width: 80.6%;"></div>
+              </div>
+            </div>
+            <div class="meter-item">
+              <div class="meter-header">
+                <span class="label"><span data-i18n="impact_next_halt">Next Halt ETA</span></span>
+                <span class="val">0 mins</span>
+              </div>
+              <div class="meter-bar">
+                <div class="meter-fill black" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Police Administration Summary Section -->
+    <section class="summary-section">
+      <div class="summary-container">
+        <div class="summary-title-col">
+          <h3 data-i18n="summary_title">Wari Management & Planning Review</h3>
+        </div>
+        <div class="summary-desc-col">
+          <span class="badge" data-i18n="summary_badge">Summary</span>
+          <p data-i18n="summary_desc">The administration has adopted a comprehensive, technology-driven and
+            citizen-centric approach for the Ashadhi Wari 2026, integrating 24x7 smart surveillance, AI-powered traffic
+            management, advanced public safety systems and large-scale operational deployment to ensure a secure and
+            seamless pilgrimage.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Facts & FAQs Section -->
+    <section class="faq-section" id="faqs">
+      <div class="faq-container">
+        <div class="faq-left-col">
+          <div class="image-wrapper">
+            <img src="./assets/img/palkhi-procession.jpg" alt="Palkhi chariot" class="faq-img">
+          </div>
+          <div class="faq-metrics-grid">
+            <div class="metric-item">
+              <span class="val">2</span>
+              <span class="lbl"><span data-i18n="faq_metric_palkhis">Sacred Palkhis</span></span>
+            </div>
+            <div class="metric-item">
+              <span class="val">25-30 kms</span>
+              <span class="lbl"><span data-i18n="faq_metric_route">Route Covered/Day</span></span>
+            </div>
+            <div class="metric-item">
+              <span class="val">7000+</span>
+              <span class="lbl"><span data-i18n="faq_metric_coord">On-Ground Coord.</span></span>
+            </div>
+          </div>
+          <a href="#live-tracking" class="btn-route-map"><span data-i18n="btn_route_map">Route Map</span> <svg
+              viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round"
+              style="display:inline-block;vertical-align:middle;margin-left:4px">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg></a>
+        </div>
+        <div class="faq-right-col">
+          <span class="badge">Facts</span>
+          <h2 data-i18n="faq_title">Wari 2026: Resource & Arrangements</h2>
+
+          <div class="faq-accordion">
+            <details class="faq-item" open>
+              <summary class="faq-question">
+                <span data-i18n="faq_q1">Is this page active for the entire journey from Dehu and Alandi to
+                  Pandharpur?</span>
+                <span class="faq-arrow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg></span>
+              </summary>
+              <div class="faq-answer">
+                <p data-i18n="faq_a1">This platform remains active throughout the entire pilgrimage to provide live
+                  coordinates and location-based assistance to devotees.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-question">
+                <span data-i18n="faq_q2">How many volunteers and coordinators are on-ground for the Wari
+                  arrangements?</span>
+                <span class="faq-arrow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg></span>
+              </summary>
+              <div class="faq-answer">
+                <p data-i18n="faq_a2">Thousands of security guards, medical volunteers, and administration coordinators
+                  are deployed across the route to monitor crowd movement and resolve bottlenecks.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-question">
+                <span data-i18n="faq_q3">How are the current locations provided?</span>
+                <span class="faq-arrow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg></span>
+              </summary>
+              <div class="faq-answer">
+                <p data-i18n="faq_a3">Locations are provided using dynamic GPS updates attached to the administrative
+                  vehicles accompanying the Palkhi chariots, backed by manual coordinate updates from officers stationed
+                  at route checkpoints.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Statistics Ribbon Section -->
+  <section class="statistics-strip-section">
+    <div class="stats-container">
+      <div class="logo-list">
+        <img src="./logo.png" alt="Logo" class="strip-logo">
+
+        <img src="./assets/img/brand-2c-charanseva.png" alt="Charanseva" class="strip-logo flex-charan">
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-items">
+        <div class="stat-item">
+          <span class="num">500K+</span>
+          <span class="label">Devotees</span>
+        </div>
+        <div class="stat-item">
+          <span class="num">250+</span>
+          <span class="label">KM Journey</span>
+        </div>
+        <div class="stat-item">
+          <span class="num">24/7</span>
+          <span class="label">Live Updates</span>
+        </div>
+        <div class="stat-item">
+          <span class="num">30+</span>
+          <span class="label">Halt Points</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-overlay-card">
+
+      <h3>
+        <h3 data-i18n="footer_overlay_title">Stay Updated Throughout the Wari</h3>
+    </div>
+
+    <div class="footer-main">
+      <div class="footer-container">
+        <div class="footer-col-left">
+          <span class="footer-title"><span data-i18n="footer_col_palkhi">Palkhi</span>
+            <a href="#live-tracking" onclick="setPalkhi('dnyaneshwar')">Sant Dnyaneshwar Maharaj</a>
+            <a href="#live-tracking" onclick="setPalkhi('tukaram')">Sant Tukaram Maharaj</a>
+        </div>
+
+        <div class="footer-col-right" id="emergency">
+          <span class="footer-title"><span data-i18n="footer_col_emergency">Emergency Contacts</span>
+            <div class="contacts-grid">
+              <span>Police: 112</span>
+              <span>Ambulance: 108</span>
+              <span>Fire: 101</span>
+            </div>
+            <a href="#" class="scroll-top"><span data-i18n="footer_scroll_top">Scroll to Top</span> <svg
+                viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round"
+                style="display:inline-block;vertical-align:middle;margin-left:3px">
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg></a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Live Palkhi Tracking. All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Help Modal -->
+  <div id="modal" class="modal" onclick="closeModal(event)">
+    <div class="modal-card">
+      <h2>स्थान शेअर करा / मदत मागा</h2>
+      <input id="dindi" class="field" placeholder="दिंडी क्रमांक / नाव / मोबाईल संदर्भ">
+      <select id="issue" class="field">
+        <option>वैद्यकीय आपत्कालीन मदत</option>
+        <option>रुग्णवाहिका हवी</option>
+        <option>पाणी हवे</option>
+        <option>व्यक्ती हरवली</option>
+        <option>इतर मदत</option>
+      </select>
+      <div class="act">
+        <button onclick="closeModal()">रद्द करा</button>
+        <button class="share" onclick="shareCurrentLocation()">शेअर करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading script tags in exact order -->
+  <script src="./assets/vendor/leaflet/leaflet.js"></script>
+  <script src="./data/wari-points-1.js"></script>
+  <script src="./data/wari-points-2.js"></script>
+  <script src="./data/wari-points-3.js"></script>
+  <script src="./data/wari-points-4.js"></script>
+  <script src="./data/wari-points-5.js"></script>
+  <script src="./data/wari-points-tukaram.js"></script>
+  <script src="./data/wari-points-dnyaneshwar-halts.js"></script>
+  <script src="./data/wari-route-dnyaneshwar-pune.js"></script>
+  <script src="./data/wari-routes-full.js"></script>
+  <script src="./data/wari-points-tukaram-halts.js"></script>
+  <script src="./data/wari-points-satara.js"></script>
+  <script src="./data/wari-points-hirkani.js"></script>
+  <script src="./data/wari-points-private.js"></script>
+  <script src="./data/wari-points-solapur.js"></script>
+  <script src="./data/wari-points-water-solapur.js"></script>
+  <script src="./data/wari-points-toilets.js"></script>
+  <script src="./data/wari-points-police.js"></script>
+  <script src="./data/wari-points-charanseva.js"></script>
+  <script src="./data/wari-points-water-filling.js"></script>
+  <script src="./data/wari-points-amb-supplement.js"></script>
+  <script src="./data/wari-points-phc102.js"></script>
+  <script src="./data/wari-points-mrsac.js"></script>
+  <script src="./data/wari-points-icu.js"></script>
+  <script src="./data/wari-points-dho-mo.js"></script>
+  <script src="./data/wari-points-visava.js"></script>
+  <script src="./data/wari-points-mymaps.js"></script>
+  <script src="./data/wari-points-memsbook.js"></script>
+  <script src="./data/wari-ambulance-contacts-2026.js"></script>
+  <script src="./data/wari-mukkams.js"></script>
+  <script src="./data/wari-officials.js"></script>
+  <script src="./data/wari-dignitaries.js"></script>
+  <script src="./data/wari-clips.js"></script>
+  <script src="./data/wari-data.js"></script>
+  <script src="./assets/js/app.js"></script>
+  <script src="./data/wari-analytics.js"></script>
+
+
+</body>
+
+</html>

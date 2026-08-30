@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sarathi Grid — Commercial Truck &amp; Logistics Registration</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      background: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      color: #1a1a3e;
+    }
+
+    /* ── Left Panel (Registration Form) ── */
+    .left-panel {
+      flex: 0 0 640px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px;
+      padding-left: 100px;
+      background: #ffffff;
+      overflow-y: auto;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 1024px) {
+      .left-panel {
+        flex: 1;
+        padding: 32px 24px;
+      }
+    }
+
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-row img {
+      height: 44px;
+      width: auto;
+    }
+
+    .logo-row .brand-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1a1a3e;
+      line-height: 1.2;
+    }
+
+    .logo-row .brand-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .link-btn {
+      color: #64748b;
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+
+    .link-btn:hover {
+      color: #35298a;
+    }
+
+    .btn-login-small {
+      background: #1a1a3e;
+      color: #ffffff;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 13px;
+      text-decoration: none;
+      transition: background 0.15s ease;
+    }
+
+    .btn-login-small:hover {
+      background: #35298a;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #1a1a3e;
+      line-height: 1.15;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      font-size: 14.5px;
+      color: #64748b;
+      margin-bottom: 32px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .form-field {
+      margin-bottom: 18px;
+    }
+
+    .form-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input,
+    .input-wrap select {
+      width: 100%;
+      height: 48px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0 16px;
+      font-size: 14.5px;
+      font-family: inherit;
+      color: #1a1a3e;
+      background: #ffffff;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .input-wrap input:focus,
+    .input-wrap select:focus {
+      border-color: #35298a;
+      box-shadow: 0 0 0 3px rgba(53, 41, 138, 0.08);
+    }
+
+    .input-wrap input::placeholder {
+      color: #94a3b8;
+    }
+
+    .btn-submit {
+      width: 100%;
+      height: 50px;
+      background: #1a1a3e;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15.5px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      margin-top: 10px;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-submit:hover {
+      background: #35298a;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(53, 41, 138, 0.2);
+    }
+
+    /* ── Right Panel (Demo Accounts) ── */
+    .right-panel {
+      flex: 1;
+      background: #f8fafc;
+      border-left: 1.5px solid #e2e8f0;
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    @media (max-width: 1024px) {
+      body {
+        flex-direction: column;
+      }
+      .right-panel {
+        border-left: none;
+        border-top: 1.5px solid #e2e8f0;
+        padding: 32px 24px;
+        min-height: auto;
+      }
+    }
+
+    .demo-section-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #1a1a3e;
+      margin-bottom: 6px;
+    }
+
+    .demo-section-sub {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    .demo-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 540px;
+    }
+
+    .demo-card {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .demo-card:hover {
+      border-color: #35298a;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(53, 41, 138, 0.08);
+    }
+
+    .demo-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .demo-plate {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1a1a3e;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-cleared {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    .badge-hold {
+      background: #fffbe6;
+      color: #d97706;
+      border: 1px solid #fef08a;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    .badge-corridor {
+      background: #ecfeff;
+      color: #0891b2;
+      border: 1px solid #a5f3fc;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    .demo-meta {
+      font-size: 13.5px;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .demo-status {
+      font-size: 12.5px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LEFT PANEL: Registration Form -->
+  <div class="left-panel">
+    
+    <!-- Top Navigation Header -->
+    <div class="top-nav">
+      <a href="./index.html" class="logo-row">
+        <img src="./logo.png" alt="Sarathi Grid">
+        <div>
+          <div class="brand-name">Sarathi Grid</div>
+          <div class="brand-sub">Logistics Portal</div>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <a href="./index.html" class="link-btn">Home</a>
+        <a href="./login.html" class="btn-login-small">Portal Login</a>
+      </div>
+    </div>
+
+    <h1>Vehicle &amp; Driver Registration</h1>
+    <p class="subtitle">Register your commercial truck or emergency tanker to receive AI departure slots and Green Corridor guidance.</p>
+
+    <form id="driverRegForm" onsubmit="submitDriverRegistration(event)">
+      
+      <div class="form-field">
+        <label for="driverFullName">Driver Full Name</label>
+        <div class="input-wrap">
+          <input type="text" id="driverFullName" placeholder="e.g. Ramesh Patil" required />
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="driverPhoneNum">Driver Phone Number</label>
+        <div class="input-wrap">
+          <input type="tel" id="driverPhoneNum" placeholder="e.g. +91 98765 43210" required />
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="truckPlateNum">Truck Plate Number</label>
+        <div class="input-wrap">
+          <input type="text" id="truckPlateNum" placeholder="e.g. MH-12-VT-4829" required style="text-transform: uppercase;" />
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="vehicleCategory">Vehicle Type / Payload Category</label>
+        <div class="input-wrap">
+          <select id="vehicleCategory">
+            <option value="12,000L Potable Water Tanker">12,000L Potable Water Tanker (Priority Hydration)</option>
+            <option value="10-Ton Emergency Ration Freight">10-Ton Emergency Ration Freight (Food Supply)</option>
+            <option value="Mobile ICU Medical Supply Van">Mobile ICU Medical Supply Van (Emergency Health)</option>
+            <option value="Sanitation & Mobile Toilet Transport">Sanitation &amp; Mobile Toilet Transport</option>
+            <option value="General Commercial Goods Truck">General Commercial Goods Truck (Freight)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="originDepot">Preferred Origin Freight Depot</label>
+        <div class="input-wrap">
+          <select id="originDepot">
+            <option value="Hadapsar Goods Depot">Hadapsar Goods Depot (Pune East)</option>
+            <option value="Loni Kalbhor Freight Yard">Loni Kalbhor Freight Yard (NH-65)</option>
+            <option value="Swargate Transport Hub">Swargate Transport Hub (Central Pune)</option>
+            <option value="Phaltan Logistics Center">Phaltan Logistics Center (Satara Sector)</option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        Register Vehicle &amp; Open Driver AI Portal ➔
+      </button>
+
+    </form>
+  </div>
+
+  <!-- RIGHT PANEL: Quick Access Demo Accounts -->
+  <div class="right-panel">
+    <div class="demo-section-title">Quick Access Demo Accounts</div>
+    <div class="demo-section-sub">Click any pre-configured truck demo below to instantly open the single-page AI Driver Portal:</div>
+
+    <div class="demo-cards-list">
+      
+      <!-- Demo Account 1 -->
+      <div class="demo-card" onclick="launchDemoDriver('MH-12-VT-4829')">
+        <div class="demo-card-top">
+          <span class="demo-plate">MH-12-VT-4829</span>
+          <span class="badge-cleared">CLEARED</span>
+        </div>
+        <div class="demo-meta">Driver: Ramesh Patil | 12,000L Water Tanker</div>
+        <div class="demo-status">Departure Window: 22:45 IST (Hadapsar ➔ Pandharpur)</div>
+      </div>
+
+      <!-- Demo Account 2 -->
+      <div class="demo-card" onclick="launchDemoDriver('MH-14-TR-9102')">
+        <div class="demo-card-top">
+          <span class="demo-plate">MH-14-TR-9102</span>
+          <span class="badge-hold">ON HOLD</span>
+        </div>
+        <div class="demo-meta">Driver: Sunil Deshmukh | 10-Ton Ration Freight</div>
+        <div class="demo-status">Status: Held until 01:30 due to Dive Ghat crowd loading</div>
+      </div>
+
+      <!-- Demo Account 3 -->
+      <div class="demo-card" onclick="launchDemoDriver('MH-11-AA-3049')">
+        <div class="demo-card-top">
+          <span class="demo-plate">MH-11-AA-3049</span>
+          <span class="badge-corridor">GREEN CORRIDOR</span>
+        </div>
+        <div class="demo-meta">Driver: Vikram Shinde | Mobile ICU Medical Van</div>
+        <div class="demo-status">Status: 24/7 Unrestricted Emergency Pass</div>
+      </div>
+
+    </div>
+  </div>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Initialize Supabase client
+  const supabaseUrl = 'https://rtljcbueiwttbdqqivpe.supabase.co';
+  const supabaseKey = 'sb_publishable_PkL-cddi3fGpeXOiDnTLkw_G8_R9hy_';
+  // Use a distinct variable name to avoid shadowing the global 'supabase' namespace
+  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+  async function submitDriverRegistration(e) {
+    e.preventDefault();
+    const data = {
+      driver: document.getElementById('driverFullName').value.trim(),
+      phone: document.getElementById('driverPhoneNum').value.trim(),
+      truck: document.getElementById('truckPlateNum').value.trim().toUpperCase(),
+      type: document.getElementById('vehicleCategory').value,
+      depot: document.getElementById('originDepot').value,
+      registeredAt: new Date().toISOString()
+    };
+
+    // Upsert driver record into Supabase
+    const { error } = await supabaseClient.from('drivers').upsert({
+      truck_plate: data.truck,
+      driver_name: data.driver,
+      contact_number: data.phone,
+      vehicle_type: data.type,
+      depot: data.depot,
+      registered_at: data.registeredAt
+    }, { onConflict: 'truck_plate' });
+
+    if (error) {
+      console.warn('Supabase DB insertion failed (check if table "drivers" exists). Falling back to local state:', error);
+    }
+
+    // Store locally for driver portal convenience (optional)
+    localStorage.setItem('wari_truck_data', JSON.stringify({
+      driver: data.driver,
+      phone: data.phone,
+      truck: data.truck,
+      type: data.type,
+      depot: data.depot,
+      registeredAt: data.registeredAt
+    }));
+    window.location.href = './truck-driver.html';
+  }
+
+  function launchDemoDriver(plateNum) {
+    var demoObj = { truck: plateNum };
+    localStorage.setItem('wari_truck_data', JSON.stringify(demoObj));
+    window.location.href = './truck-driver.html';
+  }
+</script>
+
+</body>
+</html>

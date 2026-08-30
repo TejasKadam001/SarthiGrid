@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sarathi Grid — Command Portal Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Outfit', system-ui, sans-serif;
+      background: #ffffff;
+      height: 100vh;
+      display: flex;
+      align-items: stretch;
+    }
+
+    /* ── Left Panel ── */
+    .left-panel {
+      flex: 0 0 680px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 48px;
+      padding-left: 150px;
+      background: #ffffff;
+      overflow-y: auto;
+      height: 100vh;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 52px;
+    }
+
+    .logo-row img {
+      height: 48px;
+      width: auto;
+    }
+
+    .logo-row .brand-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1a1a3e;
+      line-height: 1.2;
+    }
+
+    .logo-row .brand-sub {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: #1a1a3e;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      color: #64748b;
+      margin-bottom: 40px;
+      font-weight: 400;
+    }
+
+    .form-field {
+      margin-bottom: 20px;
+    }
+
+    .form-field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      height: 52px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0 48px 0 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1a1a3e;
+      background: #ffffff;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .input-wrap input:focus {
+      border-color: #35298a;
+      box-shadow: 0 0 0 3px rgba(53, 41, 138, 0.08);
+    }
+
+    .input-wrap input::placeholder {
+      color: #c0cad8;
+    }
+
+    .eye-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+
+    .eye-btn:hover {
+      color: #35298a;
+    }
+
+    .row-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .remember-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      color: #374151;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .remember-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #35298a;
+      cursor: pointer;
+    }
+
+    .btn-login {
+      width: 100%;
+      height: 52px;
+      background: #1a1a3e;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      margin-bottom: 24px;
+      letter-spacing: 0.2px;
+    }
+
+    .btn-login:hover {
+      background: #2d2860;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(26, 26, 62, 0.25);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      color: #cbd5e1;
+      font-size: 12px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e9ecf0;
+    }
+
+    /* Quick login chips */
+    .quick-logins {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .quick-logins-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 4px;
+    }
+
+    .quick-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .quick-btn {
+      flex: 1;
+      height: 42px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #334155;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .quick-btn:hover {
+      background: #f1eafe;
+      border-color: #35298a;
+      color: #35298a;
+    }
+
+    .quick-btn .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-admin {
+      background: #3b82f6;
+    }
+
+    .dot-police {
+      background: #ef4444;
+    }
+
+    .dot-traffic {
+      background: #f59e0b;
+    }
+
+    /* Error / status */
+    .error-box {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #b91c1c;
+      font-size: 13.5px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error-box.show {
+      display: block;
+    }
+
+    .success-box {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #065f46;
+      font-size: 13.5px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success-box.show {
+      display: block;
+    }
+
+    /* Spinner inside button */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255, 255, 255, 0.4);
+      border-top-color: #ffffff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── Right Panel ── */
+    .right-panel {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #ffffff;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .right-panel img {
+      height: 100%;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+      object-position: right center;
+      display: block;
+    }
+
+    .right-overlay {
+      display: none;
+    }
+
+    .overlay-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      padding: 8px 16px;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      width: fit-content;
+    }
+
+    .overlay-badge .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      animation: pulseDot 1.4s infinite;
+    }
+
+    @keyframes pulseDot {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.6;
+        transform: scale(0.85);
+      }
+    }
+
+    .overlay-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .overlay-desc {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .left-panel {
+        max-width: 100%;
+        padding: 40px 258px;
+      }
+
+      .right-panel {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- LEFT: Login Form -->
+  <div class="left-panel">
+
+    <!-- Logo -->
+    <div class="logo-row">
+      <a href="./index.html"><img src="./logo.png" alt="Sarathi Grid"></a>
+      <div>
+        <div class="brand-name">Sarathi Grid</div>
+        <div class="brand-sub">Command Portal</div>
+      </div>
+    </div>
+
+    <h1>Welcome Back!</h1>
+    <p class="subtitle">Sign in to your command account</p>
+
+    <!-- Error / Success -->
+    <div class="error-box" id="errorBox"></div>
+    <div class="success-box" id="successBox"></div>
+
+    <!-- Form -->
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-field">
+        <label for="emailInput">Your Email Address</label>
+        <div class="input-wrap">
+          <input type="email" id="emailInput" placeholder="admin@gmail.com" required autocomplete="email">
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="passwordInput">Password</label>
+        <div class="input-wrap">
+          <input type="password" id="passwordInput" placeholder="••••••••" required autocomplete="current-password">
+          <button type="button" class="eye-btn" onclick="togglePassword()" aria-label="Toggle password visibility">
+            <svg id="eyeIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="row-between">
+        <label class="remember-row">
+          <input type="checkbox" id="rememberMe">
+          Remember Me
+        </label>
+      </div>
+
+      <button type="submit" class="btn-login" id="loginBtn">Login</button>
+    </form>
+
+    <!-- Quick Login -->
+    <div class="divider">Quick Access</div>
+    <div class="quick-logins">
+      <div class="quick-logins-label">Demo Accounts</div>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="quickLogin('admin@gmail.com','12345678')">
+          <span class="dot dot-admin"></span> Admin
+        </button>
+        <button class="quick-btn" onclick="quickLogin('police@gmail.com','12345678')">
+          <span class="dot dot-police"></span> Police
+        </button>
+        <button class="quick-btn" onclick="quickLogin('trafficpolice@gmail.com','12345678')">
+          <span class="dot dot-traffic"></span> Traffic
+        </button>
+        <button class="quick-btn" style="border-color: #f97316;" onclick="window.location.href='./truck_driver/login.html'">
+          <span class="dot" style="background: #f97316;"></span> Driver Portal 🚛
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Image Panel -->
+  <div class="right-panel">
+    <img src="./image.png" alt="Sarathi Grid Command Portal">
+    <div class="right-overlay">
+      <div class="overlay-badge">
+        <span class="live-dot"></span>
+        System Live · Ashadhi Wari 2026
+      </div>
+      <div class="overlay-title">Real-time Traffic<br>Orchestration Platform</div>
+      <div class="overlay-desc">Separate vehicles from pilgrims.<br>Coordinate 500K+ devotees safely.</div>
+    </div>
+  </div>
+
+  <script>
+    // ── Demo credentials ──
+    const DEMO_ACCOUNTS = {
+      'admin@gmail.com':        { password: '12345678', role: 'admin',   dest: './admin-dashboard.html' },
+      'police@gmail.com':       { password: '12345678', role: 'police',  dest: './locator-map.html' },
+      'trafficpolice@gmail.com':{ password: '12345678', role: 'traffic', dest: './locator-map.html' }
+    };
+
+    // Default destination (fallback)
+    const DASHBOARD_URL = './locator-map.html';
+
+    function showError(msg) {
+      const el = document.getElementById('errorBox');
+      el.textContent = msg;
+      el.classList.add('show');
+      document.getElementById('successBox').classList.remove('show');
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('successBox');
+      el.textContent = msg;
+      el.classList.add('show');
+      document.getElementById('errorBox').classList.remove('show');
+    }
+
+    function clearMessages() {
+      document.getElementById('errorBox').classList.remove('show');
+      document.getElementById('successBox').classList.remove('show');
+    }
+
+    function setLoading(on) {
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = on;
+      btn.innerHTML = on ? '<span class="spinner"></span> Signing in…' : 'Login';
+    }
+
+    function doLogin(email, password) {
+      clearMessages();
+      setLoading(true);
+
+      // Small artificial delay so it feels real
+      setTimeout(function () {
+        const key = email.trim().toLowerCase();
+        const account = DEMO_ACCOUNTS[key];
+
+        if (account && account.password === password) {
+          sessionStorage.setItem('wari_role', account.role);
+          sessionStorage.setItem('wari_email', email.trim());
+
+          const targetUrl = (account.role === 'admin') ? './admin-dashboard.html' : (account.dest || DASHBOARD_URL);
+
+          showSuccess('Signed in as ' + account.role + '. Redirecting to Command Center…');
+          setTimeout(function () {
+            window.location.href = targetUrl;
+          }, 600);
+        } else {
+          setLoading(false);
+          showError('Invalid email or password. Please try again.');
+        }
+      }, 500);
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var email = document.getElementById('emailInput').value.trim();
+      var password = document.getElementById('passwordInput').value;
+      if (!email || !password) { showError('Please enter both email and password.'); return; }
+      doLogin(email, password);
+    }
+
+    function quickLogin(email, password) {
+      document.getElementById('emailInput').value = email;
+      document.getElementById('passwordInput').value = password;
+      doLogin(email, password);
+    }
+
+    function togglePassword() {
+      var input = document.getElementById('passwordInput');
+      var icon = document.getElementById('eyeIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      } else {
+        input.type = 'password';
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      }
+    }
+
+    // Attach form listener after DOM is ready
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    });
+
+    // Already logged in? Redirect based on user role
+    var existingRole = sessionStorage.getItem('wari_role');
+    if (existingRole === 'admin') {
+      window.location.href = './admin-dashboard.html';
+    } else if (existingRole) {
+      window.location.href = DASHBOARD_URL;
+    }
+  </script>
+
+</body>
+
+</html>

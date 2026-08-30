@@ -1,0 +1,645 @@
+<!DOCTYPE html><html lang="mr"><head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title data-i18n="site_title">आरोग्य संपन्न वारी</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#35298a">
+  <link rel="stylesheet" href="./assets/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="./assets/css/app.css">
+  <script>
+  (function(){
+    if(!('serviceWorker' in navigator))return;
+    let FLAG='wariCached',toast=null;
+    function setStatus(txt){
+      let el=document.getElementById('offlineStatus');
+      if(el)el.innerHTML=txt;
+    }
+    function setOff(txt){
+      setStatus(txt);
+      try{localStorage.setItem(FLAG,'1')}catch(e){}
+    }
+    
+    // Register SW
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      reg.addEventListener('updatefound',function(){
+        let w=reg.installing;
+        w.addEventListener('statechange',function(){
+          if(w.state!=='installed')return;
+          if(navigator.serviceWorker.controller){
+            setOff('ऑफलाईन अद्ययावत केले (Reload करा)');
+          } else {
+            setOff('ऑफलाईन वारी तयार');
+          }
+        });
+      });
+    }).catch(function(){});
+
+    // Liveness listener
+    navigator.serviceWorker.addEventListener('message',function(e){
+      if(e.data&&e.data.type==='TILES_PROGRESS'){
+        setStatus('नकाशा डाऊनलोड: '+Math.round(e.data.percent)+'%');
+      }
+    });
+
+    navigator.serviceWorker.ready.then(function(){
+      setOff('ऑफलाईन तयार');
+      function bgSync(){try{if(navigator.onLine&&navigator.serviceWorker.controller)navigator.serviceWorker.controller.postMessage({type:'SYNC_NOW'});}catch(e){}}
+      bgSync();window.addEventListener('online',bgSync);
+    }).catch(function(){});
+  })();
+  </script>
+</head>
+<body>
+
+    <!-- Site Header Navbar -->
+  <header class="site-header">
+    <div class="header-container">
+      <div class="logo-area">
+        <img src="./logo.png" alt="Logo" class="logo-img">
+      </div>
+      <nav class="nav-links">
+        <a href="#home" class="nav-link active" data-i18n="nav_home">Home</a>
+        <a href="#live-tracking" class="nav-link" data-i18n="nav_live">Live Tracking</a>
+        <a href="#about" class="nav-link" data-i18n="nav_route">Route Map</a>
+        <a href="#faqs" class="nav-link" data-i18n="nav_faqs">FAQs</a>
+        <a href="#emergency" class="nav-link" data-i18n="nav_emergency">Emergency</a>
+        <a href="./login.html" class="nav-link portal-link" data-i18n="nav_portal_login">Portal Login</a>
+      </nav>
+      <div class="cta-area">
+        <div class="lang-switch">
+          <button class="lang-btn active" data-lang="mr" onclick="switchLanguage('mr')">मराठी</button>
+          <span class="lang-sep">|</span>
+          <button class="lang-btn" data-lang="en" onclick="switchLanguage('en')">English</button>
+        </div>
+        <a href="#live-tracking" class="btn-track-live" data-i18n="btn_track_live">Track Live <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:4px"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+      <div class="hero-container">
+        <div class="hero-content">
+          <h1 data-i18n="hero_title">Track the Palkhi Journey in Real Time.</h1>
+          <p class="hero-desc" data-i18n="hero_desc">Stay connected with the sacred Wari journey. View the live location, route updates, estimated arrival times, and important announcements throughout the pilgrimage.</p>
+          
+          <div class="palkhi-status-dot">
+            <span class="status-dot green"></span>
+            <span data-i18n="hero_status_dot">Both Palkhis have exited Pune City Jurisdiction. Tracking is Closed.</span>
+          </div>
+          
+          <div class="palkhi-status-cards">
+            <div class="status-card">
+              <div class="status-card-header">
+                <span class="palkhi-dot tukaram"></span>
+                <span data-i18n="tukaram_palkhi">Sant Tukaram Maharaj Palkhi</span>
+              </div>
+              <div class="status-card-body">
+                <div class="status-item">
+                  <span class="label"><span data-i18n="current_stop">Current Stop</span></span>
+                  <span class="value"><span data-i18n="tracking_closed">Tracking Closed</span></span>
+                </div>
+                <div class="status-item">
+                  <span class="label"><span data-i18n="last_updated">Last Updated</span></span>
+                  <span class="value">-</span>
+                </div>
+              </div>
+            </div>
+            <div class="status-card">
+              <div class="status-card-header">
+                <span class="palkhi-dot dnyaneshwar"></span>
+                <span data-i18n="dnyaneshwar_palkhi">Sant Dnyaneshwar Maharaj Palkhi</span>
+              </div>
+              <div class="status-card-body">
+                <div class="status-item">
+                  <span class="label"><span data-i18n="current_stop">Current Stop</span></span>
+                  <span class="value"><span data-i18n="tracking_closed">Tracking Closed</span></span>
+                </div>
+                <div class="status-item">
+                  <span class="label"><span data-i18n="last_updated">Last Updated</span></span>
+                  <span class="value">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <a href="#about" class="btn-about-us"><span data-i18n="btn_about_us">About Us</span> <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:4px"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Map Section -->
+    <section class="live-tracking-section" id="live-tracking">
+      <div class="section-title-wrap">
+        <span class="section-badge" data-i18n="live_tracking_badge">Live Tracking</span>
+        <h2 data-i18n="map_title">Pilgrim Resource Locator Map</h2>
+      </div>
+
+      <!-- Core Locator Application Box -->
+      <div class="page map-open" id="page">
+        <div class="sidebar-layout">
+          <div class="content-side">
+            <div class="top-row">
+              <span id="clock">--:--</span>
+              <span id="offlineStatus">ऑफलाईन तयार होत आहे…</span>
+            </div>
+
+            <!-- Tab Filtering -->
+            <div class="palkhi-tabs">
+              <button class="tab active" data-p="all" onclick="setPalkhi('all')" data-i18n="tab_both">दोन्ही</button>
+              <button class="tab" data-p="dnyaneshwar" onclick="setPalkhi('dnyaneshwar')" data-i18n="tab_dnyaneshwar">श्री संत ज्ञानेश्वर महाराज</button>
+              <button class="tab" data-p="tukaram" onclick="setPalkhi('tukaram')" data-i18n="tab_tukaram">जगद्गुरू श्री संत तुकाराम महाराज</button>
+            </div>
+
+            <!-- Search Inputs -->
+            <div class="search-toolbar">
+              <input id="search" class="search" placeholder="ठिकाण, डॉक्टर, वाहन क्रमांक शोधा…" oninput="refresh()">
+              <div class="chips" id="rads">
+                <button class="chip" data-r="100" onclick="setRad(100)" data-i18n="chip_100m">१०० मी</button>
+                <button class="chip" data-r="200" onclick="setRad(200)" data-i18n="chip_200m">२०० मी</button>
+                <button class="chip" data-r="300" onclick="setRad(300)" data-i18n="chip_300m">३०० मी</button>
+                <button class="chip active" data-r="1000" onclick="setRad(1000)" data-i18n="chip_1km">१ किमी</button>
+                <button class="chip" data-r="5000" onclick="setRad(5000)" data-i18n="chip_5km">५ किमी</button>
+                <button class="chip" data-r="99999999" onclick="setRad(99999999)" data-i18n="chip_all">सर्व</button>
+              </div>
+            </div>
+
+            <!-- Mukkams Halt Strip -->
+            <div class="sec-title" data-i18n="mukkam_title">पालखी मुक्काम वेळापत्रक</div>
+            <div class="mukkam-strip-container">
+              <div class="mukkam-strip" id="mukkams">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Emergency Helplines -->
+            <div class="sec-title" data-i18n="emergency_dials_title">तातडीची मदत · Emergency Dials</div>
+            <div class="emergency-dials-grid">
+              <a class="dial-btn red" href="tel:108">
+                <div class="dial-icon-circle">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 11.5V19c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-7.5l-2.08-5.49zM6.5 15c-.83 0-1.5-.67-1.5-1.5S5.67 12 6.5 12s1.5.67 1.5 1.5S7.33 15 6.5 15zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 10l1.5-4.5h11L19 10H5z"/></svg>
+                </div>
+                <div class="dial-text">
+                  <span class="num">108</span>
+                  <span class="label" data-i18n="dial_ambulance">रुग्णवाहिका</span>
+                </div>
+              </a>
+              <a class="dial-btn dark" href="tel:112">
+                <div class="dial-icon-circle">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 15l-4-4 1.41-1.41L11 13.17l5.59-5.59L18 9l-7 7z"/></svg>
+                </div>
+                <div class="dial-text">
+                  <span class="num">112</span>
+                  <span class="label" data-i18n="dial_emergency">आपत्कालीन</span>
+                </div>
+              </a>
+            </div>
+
+            <!-- Weather Card -->
+            <a class="weather-alert-card" id="wxCard" href="https://www.accuweather.com/en/in/pune/204848/weather-forecast/204848" target="_blank" rel="noopener noreferrer">
+              <span id="wxTemp" style="font-size: 20px; font-weight: 800;">—</span>
+              <span class="weather-info">
+                <span id="wxPlace">पुणे</span> · <span id="wxCond">पाहत आहोत…</span> · पाऊस <span id="wxRain">—</span>
+              </span>
+              <span class="weather-source">विस्तृत अंदाज ↗<br>स्रोत: Open-Meteo</span>
+            </a>
+
+            <!-- Directories -->
+            <div class="directory-list">
+              <details class="helpline" id="helpline">
+                <summary>
+                  <span class="circle">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6.62 10.79a15.15 15.15 0 006.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                  </span>
+                  <span data-i18n="helpline_other"><b>इतर आरोग्य हेल्पलाईन</b><small>आरोग्य, महिला-बाल, मानसिक आरोग्य, आपत्ती मदत</small></span>
+                  <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </summary>
+                <div class="helpline-body">
+                  <div class="hrow">
+                    <div class="hname">आरोग्य सल्ला / तक्रार / रक्त उपलब्धता / मानसिक आरोग्य</div>
+                    <div class="hnum"><a class="redcall" href="tel:104">104</a></div>
+                  </div>
+                  <div class="hrow">
+                    <div class="hname">जननी शिशु सुरक्षा कार्यक्रम</div>
+                    <div class="hnum"><a href="tel:102">102</a></div>
+                  </div>
+                  <div class="hrow">
+                    <div class="hname">महात्मा ज्योतिबा फुले जन आरोग्य योजना</div>
+                    <div class="hnum"><a href="tel:155388">155388</a><a href="tel:18002332200">1800 233 2200</a></div>
+                  </div>
+                  <div class="hrow">
+                    <div class="hname">आपत्ती व्यवस्थापन</div>
+                    <div class="hnum"><a class="redcall" href="tel:1077">1077</a></div>
+                  </div>
+                </div>
+              </details>
+
+              <details class="helpline" id="adminbox">
+                <summary>
+                  <span class="circle">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  </span>
+                  <span data-i18n="helpline_district"><b>जिल्हानिहाय अधिकारी</b><small>पुणे · सातारा · सोलापूर — प्रशासन, आरोग्य व तालुका</small></span>
+                  <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </summary>
+                <div class="helpline-body" id="admin-body"></div>
+              </details>
+
+              <details class="helpline" id="healthbox">
+                <summary>
+                  <span class="circle">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1.4 6h-2.2V6.8c0-.4-.3-.8-.8-.8h-5.2c-.4 0-.8.4-.8.8V9H6.4c-.4 0-.8.3-.8.8v5.2c0 .4.3.8.8.8h2.2v2.2c0 .4.3.8.8.8h5.2c.4 0 .8-.4.8-.8v-2.2h2.2c.4 0 .8-.3.8-.8V9.8c0-.5-.4-.8-.8-.8z"/></svg>
+                  </span>
+                  <span data-i18n="helpline_state"><b>राज्य / विभागीय / मनपा अधिकारी</b><small>राज्यस्तरीय · विभागीय · महानगरपालिका आरोग्य</small></span>
+                  <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </summary>
+                <div class="helpline-body" id="health-body"></div>
+              </details>
+
+              <details class="helpline" id="police">
+                <summary>
+                  <span class="circle">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                  </span>
+                  <span data-i18n="helpline_police"><b>पोलीस संपर्क</b><small>पालखी मार्ग ड्युटी · ४४ पोलीस स्टेशन · ८७ अधिकारी</small></span>
+                  <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </summary>
+                <div class="helpline-body" id="police-body"></div>
+              </details>
+            </div>
+
+            <!-- Health Precaution Clips -->
+            <div class="sec-title" data-i18n="clips_title">आरोग्य संदेश · व्हिडिओ / ऑडिओ</div>
+            <div id="clipFeatured"></div>
+            <details class="helpline" id="clipsBox">
+              <summary>
+                <span class="circle">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-11 12.5v-7l6 3.5-6 3.5z"/></svg>
+                </span>
+                <span><b data-i18n="clips_all">सर्व व्हिडिओ / ऑडिओ पहा</b><small><span id="clipCount"></span> क्लिप · यादी उघडा</small></span>
+                <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+              </summary>
+              <div class="helpline-body">
+                <div class="clip-list" id="clipStrip"></div>
+              </div>
+            </details>
+
+            <!-- Results feed -->
+            <div class="search-results-section">
+              <div class="sum">
+                <div class="sumrow">
+                  <span><b id="count">0</b> मदत केंद्रे</span>
+                  <span id="gps">GPS सुरू नाही</span>
+                </div>
+              </div>
+              <div id="nearSummary"></div>
+              <div id="list" class="list"></div>
+            </div>
+          </div>
+
+          <!-- Sticky map side -->
+          <div class="map-side">
+            <section class="mapcard" id="mapPanel">
+              <div class="mh">
+                <span><span data-i18n="mapcard_title">मदत नकाशा</span><small id="palkhiTitle" data-i18n="mapcard_subtitle">दोन्ही पालख्या</small></span>
+                <div class="ma">
+                  <button class="mini mini-hot" data-cat="near" onclick="nearAll()"><span data-i18n="btn_1km_all">१ किमी — सर्व मदत</span></button>
+                  <button class="mini" onclick="locateMe()"><span data-i18n="btn_my_location">माझे स्थान</span></button>
+                  <button class="mini" onclick="showMappedArea()"><span data-i18n="btn_back_to_route">मार्गावर परत</span></button>
+                </div>
+              </div>
+
+              <!-- Map filters -->
+              <div class="docsub" id="ambsub" style="display:none">
+                <span class="docsub-label" data-i18n="sub_amb">रुग्णवाहिका प्रकार:</span>
+                <button class="chip active" data-amb="all" onclick="setAmbSub('all')">सर्व</button>
+                <button class="chip" data-amb="als" onclick="setAmbSub('als')">ALS प्रगत</button>
+                <button class="chip" data-amb="bls" onclick="setAmbSub('bls')">BLS मूलभूत</button>
+                <button class="chip" data-amb="102" onclick="setAmbSub('102')">१०२</button>
+                <button class="chip" data-amb="108" onclick="setAmbSub('108')">१०८</button>
+              </div>
+
+              <div class="docsub" id="docsub" style="display:none">
+                <span class="docsub-label" data-i18n="sub_doc">दवाखाना प्रकार:</span>
+                <button class="chip active" data-doc="all" onclick="setDocSub('all')">सर्व</button>
+                <button class="chip" data-doc="phc" onclick="setDocSub('phc')">प्रा.आ.केंद्र</button>
+                <button class="chip" data-doc="rh" onclick="setDocSub('rh')">ग्रामीण/उपजि. रुग्णालय</button>
+                <button class="chip" data-doc="pvt" onclick="setDocSub('pvt')">खाजगी रुग्णालय</button>
+                <button class="chip" data-doc="hbt" onclick="setDocSub('hbt')">हिंदुहृदयसम्राट बाळासाहेब ठाकरे आपला दवाखाना</button>
+                <button class="chip" data-doc="icu" onclick="setDocSub('icu')">ICU/ट्रॉमा</button>
+              </div>
+
+              <div class="docsub" id="watsub" style="display:none">
+                <span class="docsub-label" data-i18n="sub_water">पाणी प्रकार:</span>
+                <button class="chip active" data-wat="all" onclick="setWatSub('all')">सर्व</button>
+                <button class="chip" data-wat="actual" onclick="setWatSub('actual')">टँकर भरण ठिकाण</button>
+                <button class="chip" data-wat="approx" onclick="setWatSub('approx')">अंदाजे (दर ५०० मी)</button>
+              </div>
+
+              <div class="docsub" id="haltsub" style="display:none">
+                <span class="docsub-label" data-i18n="sub_halt">थांबा प्रकार:</span>
+                <button class="chip active" data-halt="all" onclick="setHaltSub('all')">सर्व</button>
+                <button class="chip" data-halt="mukkam" onclick="setHaltSub('mukkam')">मुक्काम</button>
+                <button class="chip" data-halt="visava" onclick="setHaltSub('visava')">विसावा</button>
+              </div>
+
+              <!-- Map container -->
+              <div id="map"></div>
+
+              <!-- Map Live Overlay Card -->
+              <div class="map-overlay-card">
+                <div class="overlay-badge">
+                  <span class="status-dot green"></span> Live Tracking
+                </div>
+                <div class="overlay-row">
+                  <span class="label"><span data-i18n="dest_label">Today's Destination</span></span>
+                  <span class="value"><span data-i18n="dest_val">Loni Kalbhor & Saswad</span></span>
+                </div>
+                <div class="overlay-row">
+                  <span class="label"><span data-i18n="eta_label">Estimated Arrival Time</span></span>
+                  <span class="value">5:45 PM</span>
+                </div>
+                <div class="overlay-timer">
+                  <div class="timer-box">12h</div>
+                  <span class="timer-sep">-</span>
+                  <div class="timer-box">17m</div>
+                  <span class="timer-sep">-</span>
+                  <div class="timer-box">08s</div>
+                </div>
+              </div>
+
+              <!-- Map Legend filter button bar -->
+              <div class="legend">
+                <button class="legend-btn active" data-cat="all" onclick="chooseHelp('all')" data-i18n="leg_all">सर्व</button>
+                <button class="legend-btn" data-cat="ambulance" onclick="chooseHelp('ambulance')" data-i18n="leg_ambulance">रुग्णवाहिका</button>
+                <button class="legend-btn" data-cat="doc" onclick="chooseHelp('doc')" data-i18n="leg_doc">डॉक्टर/दवाखाना</button>
+                <button class="legend-btn" data-cat="water" onclick="chooseHelp('water')" data-i18n="leg_water">पाणी</button>
+                <button class="legend-btn" data-cat="toilet" onclick="chooseHelp('toilet')" data-i18n="leg_toilet">शौचालये</button>
+                <button class="legend-btn" data-cat="police" onclick="chooseHelp('police')" data-i18n="leg_police">पोलीस</button>
+                <button class="legend-btn" data-cat="charanseva" onclick="chooseHelp('charanseva')" data-i18n="leg_charanseva">चरणसेवा</button>
+                <button class="legend-btn" data-cat="hirkani" onclick="chooseHelp('hirkani')" data-i18n="leg_hirkani">हिरकणी</button>
+                <button class="legend-btn" data-cat="halt" onclick="chooseHelp('halt')" data-i18n="leg_halt">मुक्काम</button>
+                <button class="legend-btn loc-btn" onclick="locateMe()"><span data-i18n="btn_my_location">माझे स्थान</span></button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Statistics Ribbon Section -->
+    <section class="statistics-strip-section">
+      <div class="stats-container">
+        <div class="logo-list">
+          <img src="./logo.png" alt="Logo" class="strip-logo">
+          
+          <img src="./assets/img/brand-2c-charanseva.png" alt="Charanseva" class="strip-logo flex-charan">
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-items">
+          <div class="stat-item">
+            <span class="num">500K+</span>
+            <span class="label">Devotees</span>
+          </div>
+          <div class="stat-item">
+            <span class="num">250+</span>
+            <span class="label">KM Journey</span>
+          </div>
+          <div class="stat-item">
+            <span class="num">24/7</span>
+            <span class="label">Live Updates</span>
+          </div>
+          <div class="stat-item">
+            <span class="num">30+</span>
+            <span class="label">Halt Points</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Impact & Progress Section -->
+    <section class="impact-section" id="about">
+      <div class="impact-container">
+        <div class="impact-image-side">
+          <div class="image-wrapper">
+            <img src="./assets/img/palkhi-procession.jpg" alt="Wari Procession" class="impact-img">
+          </div>
+          <div class="impact-img-card">
+            <span class="title">Live Palkhi Tracking</span>
+            <span class="value">250+ km</span>
+            <span class="sub">Pilgrimage Route</span>
+            <a href="#live-tracking" class="btn-emergency">Emergency <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:4px"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+          </div>
+        </div>
+        <div class="impact-content-side">
+          <span class="badge">Impact</span>
+          <h2>Connecting Millions Through the Sacred Wari</h2>
+          <p data-i18n="impact_desc">Experience the Wari like never before with live GPS tracking, route updates, halt locations, and estimated arrival times. Our platform helps devotees, volunteers, and visitors stay informed throughout the sacred journey.</p>
+          
+          <div class="progress-meters">
+            <div class="meter-item">
+              <div class="meter-header">
+                <span class="label"><span data-i18n="impact_today_journey">Today's Journey</span></span>
+                <span class="val">25 km / 31 km</span>
+              </div>
+              <div class="meter-bar">
+                <div class="meter-fill red" style="width: 80.6%;"></div>
+              </div>
+            </div>
+            <div class="meter-item">
+              <div class="meter-header">
+                <span class="label"><span data-i18n="impact_next_halt">Next Halt ETA</span></span>
+                <span class="val">0 mins</span>
+              </div>
+              <div class="meter-bar">
+                <div class="meter-fill black" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Police Administration Summary Section -->
+    <section class="summary-section">
+      <div class="summary-container">
+        <div class="summary-title-col">
+          <h3 data-i18n="summary_title">Wari Management & Planning Review</h3>
+        </div>
+        <div class="summary-desc-col">
+          <span class="badge" data-i18n="summary_badge">Summary</span>
+          <p data-i18n="summary_desc">The administration has adopted a comprehensive, technology-driven and citizen-centric approach for the Ashadhi Wari 2026, integrating 24x7 smart surveillance, AI-powered traffic management, advanced public safety systems and large-scale operational deployment to ensure a secure and seamless pilgrimage.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Facts & FAQs Section -->
+    <section class="faq-section" id="faqs">
+      <div class="faq-container">
+        <div class="faq-left-col">
+          <div class="image-wrapper">
+            <img src="./assets/img/palkhi-procession.jpg" alt="Palkhi chariot" class="faq-img">
+          </div>
+          <div class="faq-metrics-grid">
+            <div class="metric-item">
+              <span class="val">2</span>
+              <span class="lbl"><span data-i18n="faq_metric_palkhis">Sacred Palkhis</span></span>
+            </div>
+            <div class="metric-item">
+              <span class="val">25-30 kms</span>
+              <span class="lbl"><span data-i18n="faq_metric_route">Route Covered/Day</span></span>
+            </div>
+            <div class="metric-item">
+              <span class="val">7000+</span>
+              <span class="lbl"><span data-i18n="faq_metric_coord">On-Ground Coord.</span></span>
+            </div>
+          </div>
+          <a href="#live-tracking" class="btn-route-map"><span data-i18n="btn_route_map">Route Map</span> <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:4px"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></a>
+        </div>
+        <div class="faq-right-col">
+          <span class="badge">Facts</span>
+          <h2 data-i18n="faq_title">Wari 2026: Resource & Arrangements</h2>
+          
+          <div class="faq-accordion">
+            <details class="faq-item" open>
+              <summary class="faq-question">
+                <span data-i18n="faq_q1">Is this page active for the entire journey from Dehu and Alandi to Pandharpur?</span>
+                <span class="faq-arrow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+              </summary>
+              <div class="faq-answer">
+                <p data-i18n="faq_a1">This platform remains active throughout the entire pilgrimage to provide live coordinates and location-based assistance to devotees.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-question">
+                <span data-i18n="faq_q2">How many volunteers and coordinators are on-ground for the Wari arrangements?</span>
+                <span class="faq-arrow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+              </summary>
+              <div class="faq-answer">
+                <p data-i18n="faq_a2">Thousands of security guards, medical volunteers, and administration coordinators are deployed across the route to monitor crowd movement and resolve bottlenecks.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary class="faq-question">
+                <span data-i18n="faq_q3">How are the current locations provided?</span>
+                <span class="faq-arrow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+              </summary>
+              <div class="faq-answer">
+                <p data-i18n="faq_a3">Locations are provided using dynamic GPS updates attached to the administrative vehicles accompanying the Palkhi chariots, backed by manual coordinate updates from officers stationed at route checkpoints.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-overlay-card">
+      
+      <h3><h3 data-i18n="footer_overlay_title">Stay Updated Throughout the Wari</h3>
+    </div>
+    
+    <div class="footer-main">
+      <div class="footer-container">
+        <div class="footer-col-left">
+          <span class="footer-title"><span data-i18n="footer_col_palkhi">Palkhi</span>
+          <a href="#live-tracking" onclick="setPalkhi('dnyaneshwar')">Sant Dnyaneshwar Maharaj</a>
+          <a href="#live-tracking" onclick="setPalkhi('tukaram')">Sant Tukaram Maharaj</a>
+        </div>
+        
+        <div class="footer-col-right" id="emergency">
+          <span class="footer-title"><span data-i18n="footer_col_emergency">Emergency Contacts</span>
+          <div class="contacts-grid">
+            <span>Police: 112</span>
+            <span>Ambulance: 108</span>
+            <span>Fire: 101</span>
+          </div>
+          <a href="#" class="scroll-top"><span data-i18n="footer_scroll_top">Scroll to Top</span> <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-left:3px"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></a>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>&copy; 2026 Live Palkhi Tracking. All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Help Modal -->
+  <div id="modal" class="modal" onclick="closeModal(event)">
+    <div class="modal-card">
+      <h2>स्थान शेअर करा / मदत मागा</h2>
+      <input id="dindi" class="field" placeholder="दिंडी क्रमांक / नाव / मोबाईल संदर्भ">
+      <select id="issue" class="field">
+        <option>वैद्यकीय आपत्कालीन मदत</option>
+        <option>रुग्णवाहिका हवी</option>
+        <option>पाणी हवे</option>
+        <option>व्यक्ती हरवली</option>
+        <option>इतर मदत</option>
+      </select>
+      <div class="act">
+        <button onclick="closeModal()">रद्द करा</button>
+        <button class="share" onclick="shareCurrentLocation()">शेअर करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Help Request button -->
+  <div class="embar">
+    <a class="embar-108" href="tel:108">
+      <span class="embar-ic">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="white" style="display:inline-block;vertical-align:middle"><path d="M6.62 10.79a15.15 15.15 0 006.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+      </span>
+      <span><b>108</b> रुग्णवाहिका</span>
+    </a>
+    <a class="embar-112" href="tel:112">
+      <span class="embar-ic">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="white" style="display:inline-block;vertical-align:middle"><path d="M6.62 10.79a15.15 15.15 0 006.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+      </span>
+      <span><b>112</b> पोलीस</span>
+    </a>
+  </div>
+
+  <!-- Loading script tags in exact order -->
+  <script src="./assets/vendor/leaflet/leaflet.js"></script>
+  <script src="./data/wari-points-1.js"></script>
+  <script src="./data/wari-points-2.js"></script>
+  <script src="./data/wari-points-3.js"></script>
+  <script src="./data/wari-points-4.js"></script>
+  <script src="./data/wari-points-5.js"></script>
+  <script src="./data/wari-points-tukaram.js"></script>
+  <script src="./data/wari-points-dnyaneshwar-halts.js"></script>
+  <script src="./data/wari-route-dnyaneshwar-pune.js"></script>
+  <script src="./data/wari-routes-full.js"></script>
+  <script src="./data/wari-points-tukaram-halts.js"></script>
+  <script src="./data/wari-points-satara.js"></script>
+  <script src="./data/wari-points-hirkani.js"></script>
+  <script src="./data/wari-points-private.js"></script>
+  <script src="./data/wari-points-solapur.js"></script>
+  <script src="./data/wari-points-water-solapur.js"></script>
+  <script src="./data/wari-points-toilets.js"></script>
+  <script src="./data/wari-points-police.js"></script>
+  <script src="./data/wari-points-charanseva.js"></script>
+  <script src="./data/wari-points-water-filling.js"></script>
+  <script src="./data/wari-points-amb-supplement.js"></script>
+  <script src="./data/wari-points-phc102.js"></script>
+  <script src="./data/wari-points-mrsac.js"></script>
+  <script src="./data/wari-points-icu.js"></script>
+  <script src="./data/wari-points-dho-mo.js"></script>
+  <script src="./data/wari-points-visava.js"></script>
+  <script src="./data/wari-points-mymaps.js"></script>
+  <script src="./data/wari-points-memsbook.js"></script>
+  <script src="./data/wari-ambulance-contacts-2026.js"></script>
+  <script src="./data/wari-mukkams.js"></script>
+  <script src="./data/wari-officials.js"></script>
+  <script src="./data/wari-dignitaries.js"></script>
+  <script src="./data/wari-clips.js"></script>
+  <script src="./data/wari-data.js"></script>
+  <script src="./assets/js/app.js"></script>
+  <script src="./data/wari-analytics.js"></script>
+
+</body></html>

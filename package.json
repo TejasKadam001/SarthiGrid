@@ -1,0 +1,11 @@
+{
+  "name": "varithon-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for आरोग्य संपन्न वारी",
+  "scripts": {
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}
