@@ -842,7 +842,7 @@
 
     async function checkLiveStatusBackend(plate) {
       try {
-        const res = await fetch('http://localhost:5005/api/truck-status');
+        const res = await fetch('https://sarthigrid.onrender.com/api/truck-status');
         const data = await res.json();
         
         let status = 'PENDING';

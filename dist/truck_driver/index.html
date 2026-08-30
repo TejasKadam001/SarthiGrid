@@ -907,7 +907,7 @@
 
     async function checkLiveStatusBackend(plate) {
       try {
-        const baseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:5005';
+        const baseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'https://sarthigrid.onrender.com';
         const res = await fetch(baseUrl + '/api/truck-status');
         const data = await res.json();
         
