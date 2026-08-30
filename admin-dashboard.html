@@ -3058,6 +3058,12 @@
       if (str === "" || str.toLowerCase() === "none" || str.toLowerCase() === "null" || str.toLowerCase() === "undefined") {
         return fallback;
       }
+      if (fallback === "+919284223412") {
+        const digits = str.replace(/\D/g, "");
+        if (digits.length < 10 || str.includes("23456789") || str.includes("12345")) {
+          return fallback;
+        }
+      }
       return str;
     }
 

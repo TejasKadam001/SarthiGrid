@@ -98,6 +98,10 @@ def approve_truck():
             else:
                 target_phone = "+" + target_phone
 
+        # Twilio Trial validation: If target phone is invalid/dummy (e.g. +23456789), reroute to the verified destination number
+        if len(target_phone) < 11 or "12345" in target_phone or "23456789" in target_phone or "5555" in target_phone:
+            target_phone = "+919284223412"
+
         # Check if they have fallback keys and use them
         if not account_sid or account_sid == "":
             account_sid = ""
