@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sarathi Grid</title>
-  <link rel="icon" type="image/png" href="./logo.png">
+  <title>Sarathi Grid — Pandharpur Terminal</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -3214,7 +3213,7 @@
         let activeCount = 1;
         let maxCapacity = 2;
         try {
-          const res = await fetch('https://sarthigrid.onrender.com/api/truck-status');
+          const res = await fetch('http://localhost:5005/api/truck-status');
           const statusData = await res.json();
           activeCount = statusData.active_count;
           maxCapacity = statusData.max_capacity;
@@ -3282,7 +3281,7 @@
 
     async function dispatchTruckBackend(plate, driver, phone, vType, depot) {
       try {
-        const response = await fetch('https://sarthigrid.onrender.com/api/approve-truck', {
+        const response = await fetch('http://localhost:5005/api/approve-truck', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

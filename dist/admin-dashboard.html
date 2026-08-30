@@ -1439,8 +1439,33 @@
               <div class="cam-title" id="camTitle4">SECTOR D - DIVE GHAT PASS</div>
               <div class="cam-subtitle" id="camSub4">Dive Ghat Corridor Feed</div>
             </div>
-          </div>
         </div>
+      </div>
+    </div>
+
+      <!-- Weather Planning & Shelter Analytics Section -->
+      <div class="table-section" style="margin-top: 24px;">
+        <div class="table-section-title">WEATHER PLANNING & SHELTER ANALYTICS</div>
+        <h2 class="table-main-title">3-Day Route Weather Forecast — Open-Meteo Integration</h2>
+        
+        <table class="compare-table" style="margin-top: 16px;">
+          <thead>
+            <tr>
+              <th style="width: 22%;">Halt Location</th>
+              <th style="width: 15%;">Date / Forecast Day</th>
+              <th style="width: 15%;">Condition</th>
+              <th style="width: 12%;">Temp (Min / Max)</th>
+              <th style="width: 12%;">Precipitation Prob.</th>
+              <th style="width: 10%;">Wind Speed</th>
+              <th style="width: 26%;">Command Shelter Recommendation</th>
+            </tr>
+          </thead>
+          <tbody id="weatherForecastTableBody">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 20px; color: #64748b;">Loading weather data...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <!-- Human-in-the-Loop Authorization Matrix Table -->
@@ -3205,7 +3230,7 @@
         let activeCount = 1;
         let maxCapacity = 2;
         try {
-          const res = await fetch('http://localhost:5005/api/truck-status');
+          const res = await fetch('https://sarthigrid.onrender.com/api/truck-status');
           const statusData = await res.json();
           activeCount = statusData.active_count;
           maxCapacity = statusData.max_capacity;
@@ -3273,7 +3298,7 @@
 
     async function dispatchTruckBackend(plate, driver, phone, vType, depot) {
       try {
-        const response = await fetch('http://localhost:5005/api/approve-truck', {
+        const response = await fetch('https://sarthigrid.onrender.com/api/approve-truck', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3297,6 +3322,95 @@
       } catch (err) {
         console.error('Backend dispatch error:', err);
         showToast('⚠️ Backend server error: Please verify python3 server.py is running on port 5005.');
+      }
+    }
+
+    async function fetchWariWeather() {
+      const locations = [
+        { name: "Current Position (Alandi)", lat: 18.6782, lng: 73.8950 },
+        { name: "Upcoming Halt (Saswad)", lat: 18.3428, lng: 74.0305 },
+        { name: "Final Terminal (Pandharpur)", lat: 17.6806, lng: 75.3299 }
+      ];
+
+      const tbody = document.getElementById('weatherForecastTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#64748b;">Fetching live weather data...</td></tr>';
+
+      try {
+        let html = '';
+        for (const loc of locations) {
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lng}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode,wind_speed_10m_max&timezone=Asia/Kolkata`);
+          const data = await res.json();
+          if (data && data.daily) {
+            const daily = data.daily;
+            for (let i = 0; i < 3; i++) {
+              const dateStr = daily.time[i];
+              const maxTemp = daily.temperature_2m_max[i];
+              const minTemp = daily.temperature_2m_min[i];
+              const precip = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : 0;
+              const wCode = daily.weathercode[i];
+              const wind = daily.wind_speed_10m_max ? daily.wind_speed_10m_max[i] : 0;
+
+              const dateObj = new Date(dateStr);
+              const options = { weekday: 'short', month: 'short', day: 'numeric' };
+              const displayDate = dateObj.toLocaleDateString('en-US', options);
+
+              let weatherDesc = "Clear Sky";
+              let emoji = "☀️";
+              let action = "Normal - Open Sky Canopy";
+              let actionStyle = "background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;";
+
+              if (wCode === 0) {
+                weatherDesc = "Clear Sky"; emoji = "☀️";
+              } else if (wCode >= 1 && wCode <= 3) {
+                weatherDesc = "Partly Cloudy"; emoji = "⛅";
+              } else if (wCode === 45 || wCode === 48) {
+                weatherDesc = "Foggy"; emoji = "🌫️";
+              } else if (wCode >= 51 && wCode <= 55) {
+                weatherDesc = "Light Drizzle"; emoji = "🌧️";
+                action = "Caution - Deploy Canopy Covers";
+                actionStyle = "background: #fffbe6; color: #d97706; border: 1px solid #fef08a;";
+              } else if (wCode >= 61 && wCode <= 65) {
+                weatherDesc = "Heavy Rain"; emoji = "🌧️";
+                action = "Rain Alert - Deploy Waterproof Tents";
+                actionStyle = "background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3;";
+              } else if (wCode >= 80 && wCode <= 82) {
+                weatherDesc = "Rain Showers"; emoji = "🌦️";
+                action = "Rain Alert - Pre-allocate Indoor Shelters";
+                actionStyle = "background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3;";
+              } else if (wCode >= 95) {
+                weatherDesc = "Thunderstorm"; emoji = "⛈️";
+                action = "Danger - Shelter Devotees Indoors Immediately";
+                actionStyle = "background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; font-weight: 700;";
+              }
+
+              if (maxTemp > 35) {
+                action = "Heat Wave - Deploy Drinking Water Stations";
+                actionStyle = "background: #fffbe6; color: #d97706; border: 1px solid #fef08a;";
+              }
+
+              html += `
+                <tr>
+                  <td style="font-weight: 700; color: #0f172a;">${loc.name}</td>
+                  <td style="font-size: 13px; color: #334155; font-weight: 600;">${displayDate}</td>
+                  <td style="font-size: 13px; color: #334155;">${emoji} ${weatherDesc}</td>
+                  <td style="font-size: 13px; color: #334155;">${minTemp}°C / ${maxTemp}°C</td>
+                  <td style="font-size: 13px; color: #334155;">${precip}%</td>
+                  <td style="font-size: 13px; color: #334155;">${wind} km/h</td>
+                  <td>
+                    <span class="badge" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; ${actionStyle}">
+                      ${action}
+                    </span>
+                  </td>
+                </tr>
+              `;
+            }
+          }
+        }
+        tbody.innerHTML = html;
+      } catch (err) {
+        console.error('Weather fetch error:', err);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#dc2626; padding:20px;">Failed to load live weather forecast. Please check internet connection.</td></tr>';
       }
     }
 
@@ -3329,6 +3443,11 @@
         loadSupabaseDrivers();
       } catch (e) {
         console.error('loadSupabaseDrivers error:', e);
+      }
+      try {
+        fetchWariWeather();
+      } catch (e) {
+        console.error('fetchWariWeather error:', e);
       }
     });
   </script>

@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sarathi Grid</title>
-  <link rel="icon" type="image/png" href="../logo.png">
+  <title>Sarathi Grid — Truck Driver AI Allocation Portal</title>
   
   <!-- Google Fonts & Leaflet -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -908,7 +907,7 @@
 
     async function checkLiveStatusBackend(plate) {
       try {
-        const baseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'https://sarthigrid.onrender.com';
+        const baseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:5005';
         const res = await fetch(baseUrl + '/api/truck-status');
         const data = await res.json();
         
