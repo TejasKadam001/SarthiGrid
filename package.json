@@ -4,7 +4,7 @@
   "description": "Frontend for आरोग्य संपन्न वारी",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && cp -r data dist/data && cp -r assets dist/assets"
+    "build": "vite build && cp -r data dist/data && cp -r assets/vendor dist/assets/vendor && cp -r assets/css dist/assets/css && cp -r assets/img dist/assets/img"
   },
   "devDependencies": {
     "vite": "^5.0.0"
