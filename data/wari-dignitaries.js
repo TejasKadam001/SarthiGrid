@@ -10,7 +10,7 @@ window.WARI_SECRETARIES=[
 (function(){
   function render(){
     var sec=document.getElementById('secretaries-strip');
-    let lang = localStorage.getItem('wari_lang') || 'mr';
+    let lang = localStorage.getItem('wari_lang') || 'en';
     if(sec) sec.innerHTML=window.WARI_SECRETARIES.map(function(o){
       let name = (lang === 'en' && o.n_en) ? o.n_en : o.n;
       // Let's split using custom check

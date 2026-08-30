@@ -356,7 +356,7 @@ const T = {
 };
 
 function t(key) {
-  let lang = localStorage.getItem('wari_lang') || 'mr';
+  let lang = localStorage.getItem('wari_lang') || 'en';
   return (T[lang] && T[lang][key]) || key;
 }
 
@@ -691,6 +691,6 @@ loadWeather(18.5204,73.8567,'पुणे');
 
 // Init Language on load
 (function(){
-  let currentLang = localStorage.getItem('wari_lang') || 'mr';
+  let currentLang = localStorage.getItem('wari_lang') || 'en';
   switchLanguage(currentLang);
 })();

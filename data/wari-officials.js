@@ -114,11 +114,11 @@ window.WARI_OFFICIALS = {
 };
 (function(){
   function t(key) {
-    let lang = localStorage.getItem('wari_lang') || 'mr';
+    let lang = localStorage.getItem('wari_lang') || 'en';
     return (window.T && window.T[lang] && window.T[lang][key]) || key;
   }
   function districtBlocks(O){
-    let lang = localStorage.getItem('wari_lang') || 'mr';
+    let lang = localStorage.getItem('wari_lang') || 'en';
     return DISTRICTS.map(function(d){
       var a=byG(O.admin,d[0]), h=byG(O.health,d[0]), team=byG(O.healthTeam,d[0]);
       var t=O.taluka.filter(function(o){return o.dist===d[1];});
@@ -134,10 +134,10 @@ window.WARI_OFFICIALS = {
   function tel(p){return (p||'').replace(/[^0-9+]/g,'');}
   function phones(p){if(!p)return '<span class="hnop">—</span>';return p.split(/\s*\/\s*/).map(function(x){return '<a href="tel:'+tel(x)+'">'+x+'</a>';}).join('');}
   function rows(list){return list.map(function(o){
-    let lang = localStorage.getItem('wari_lang') || 'mr'; let name = (lang==='en'&&o.en_n)?o.en_n:o.n; let desc = (lang==='en'&&o.en_d)?o.en_d:o.d; return '<div class="hrow"><div class="hname">'+name+'<small>'+desc+'</small></div>'
+    let lang = localStorage.getItem('wari_lang') || 'en'; let name = (lang==='en'&&o.en_n)?o.en_n:o.n; let desc = (lang==='en'&&o.en_d)?o.en_d:o.d; return '<div class="hrow"><div class="hname">'+name+'<small>'+desc+'</small></div>'
       +'<div class="hnum">'+phones(o.p)+'</div></div>';}).join('');}
   function stationRows(list){return list.map(function(s){
-    let lang = localStorage.getItem('wari_lang') || 'mr'; var names=s.off.map(function(o){return (lang==='en'&&o.en_n)?o.en_n:o.n;}).join(' · ');
+    let lang = localStorage.getItem('wari_lang') || 'en'; var names=s.off.map(function(o){return (lang==='en'&&o.en_n)?o.en_n:o.n;}).join(' · ');
     var nums=s.off.map(function(o){return phones(o.p);}).join('');
     let stName = (lang==='en'&&s.en_st)?s.en_st:s.st; return '<div class="hrow"><div class="hname"><b>🚔 '+stName+'</b><small>'+names+'<br>'+s.addr+'</small></div>'
       +'<div class="hnum">'+nums+'</div></div>';}).join('');}
@@ -145,7 +145,7 @@ window.WARI_OFFICIALS = {
     function pill(lbl,p){return '<a href="tel:'+tel(p)+'" style="display:inline-flex;align-items:center;gap:5px;background:#159653;color:#fff;border-radius:999px;padding:6px 13px;font-size:13px;font-weight:800;text-decoration:none;white-space:nowrap">📞 '+lbl+' '+p+'</a>';}
     list.forEach(function(o){
     var parts=[];
-    let lang = localStorage.getItem('wari_lang') || 'mr';
+    let lang = localStorage.getItem('wari_lang') || 'en';
     if(o.th) parts.push((lang==='en'?'Tehsildar: ':'तहसीलदार: ')+( (lang==='en'&&o.th.en_n)?o.th.en_n:o.th.n ));
     if(o.bdo) parts.push((lang==='en'?'BDO: ':'गटविकास: ')+( (lang==='en'&&o.bdo.en_n)?o.bdo.en_n:o.bdo.n ));
     if(o.tho) parts.push((lang==='en'?'THO: ':'तालुका आरोग्य अ.: ')+( (lang==='en'&&o.tho.en_n)?o.tho.en_n:o.tho.n ));
@@ -179,7 +179,7 @@ window.WARI_OFFICIALS = {
     }).join('');
   }
   function render(){
-    let lang = localStorage.getItem('wari_lang') || 'mr';
+    let lang = localStorage.getItem('wari_lang') || 'en';
     var O=window.WARI_OFFICIALS;
     var ab=document.getElementById('admin-body');
     var hb=document.getElementById('health-body');
