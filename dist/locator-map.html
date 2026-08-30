@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title data-i18n="site_title">Sarathi Grid — Locator Map</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+
+  <!-- ── Dashboard-style overrides injected here ── -->
+  <style>
+    /* Reset to dashboard design system */
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg:       #f8fafc;
+      --surface:  #ffffff;
+      --surface2: #f1f5f9;
+      --border:   #e2e8f0;
+      --accent:   #4f46e5;
+      --green:    #10b981;
+      --red:      #ef4444;
+      --amber:    #f59e0b;
+      --text:     #0f172a;
+      --muted:    #64748b;
+      --sidebar-w: 240px;
+    }
+
+    html { background: var(--bg); }
+    body {
+      font-family: 'Outfit', 'Noto Sans Devanagari', system-ui, sans-serif;
+      background: var(--bg);
+      display: flex;
+      flex-direction: row;
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    /* Hide old site-header */
+    .site-header { display: none !important; }
+
+    /* ── SIDEBAR (identical to admin-dashboard) ── */
+    .db-sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .db-sidebar-header {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .db-sidebar-logo {
+      text-decoration: none; color: var(--text);
+      font-weight: 800; font-size: 22px; letter-spacing: -0.03em;
+    }
+    .db-sidebar-logo span { color: var(--accent); }
+
+    .db-sidebar-nav { display: flex; flex-direction: column; width: 100%; }
+    .db-nav-section {
+      padding: 16px 24px 6px;
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .db-nav-item {
+      text-decoration: none; padding: 14px 24px; font-size: 14px;
+      color: var(--muted); background: transparent;
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; transition: all 0.15s ease;
+      cursor: pointer; border: none; font-family: inherit; width: 100%;
+    }
+    .db-nav-item:hover, .db-nav-item.active { color: var(--accent); background: rgba(79,70,229,0.05); }
+    .db-nav-item.active::after {
+      content: ''; position: absolute; right: 0; top: 0; bottom: 0;
+      width: 4px; background: var(--accent);
+    }
+    .db-nav-badge {
+      font-size: 9px; padding: 1px 6px; border-radius: 20px; font-weight: 700;
+    }
+    .badge-live { background: rgba(16,185,129,0.15); color: var(--green); }
+    .badge-new  { background: rgba(239,68,68,0.12);  color: var(--red); }
+
+    .db-role-wrap { padding: 0 24px; margin-top: 24px; }
+    .db-role-card {
+      padding: 12px; border-radius: 6px;
+      background: var(--surface2); border: 1px solid var(--border); margin-bottom: 12px;
+    }
+    .db-role-title { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+    .db-role-val   { font-size: 13px; font-weight: 600; color: var(--text); }
+    .db-status-card {
+      padding: 10px 12px; border-radius: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      font-size: 11px; color: var(--muted);
+      display: flex; justify-content: space-between;
+    }
+    .db-status-card strong { color: var(--green); }
+    .db-sidebar-footer { margin-top: auto; padding: 24px; border-top: 1px solid var(--border); }
+    .db-btn-switch {
+      color: var(--muted); font-size: 13px; font-weight: 500; display: block;
+      margin-bottom: 10px; background: none; border: none; cursor: pointer;
+      font-family: inherit; text-align: left; text-decoration: none;
+    }
+    .db-btn-switch:hover { color: var(--text); }
+    .db-live-dot { width: 7px; height: 7px; background: var(--green); border-radius: 50%; display: inline-block; animation: liveBlink 1.5s step-start infinite; margin-right: 5px; }
+    @keyframes liveBlink { 50% { opacity: 0; } }
+
+    /* ── WORKSPACE ── */
+    .db-workspace {
+      margin-left: var(--sidebar-w);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* ── HEADER ── */
+    .db-header {
+      height: 64px; min-height: 64px;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .db-header-left { display: flex; align-items: center; gap: 12px; }
+    .db-header-title { font-size: 13px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+    .db-header-sep   { color: var(--border); font-size: 18px; }
+    .db-header-sub   { font-size: 13px; color: var(--muted); }
+    .db-header-right { display: flex; align-items: center; gap: 10px; }
+    .db-lang-btn {
+      padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text); font-size: 12px;
+      font-weight: 500; cursor: pointer; font-family: inherit; transition: all .15s;
+    }
+    .db-lang-btn.active, .db-lang-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,70,229,0.05); }
+    .db-logout-btn {
+      background: var(--red); color: white; border: none;
+      padding: 7px 16px; border-radius: 8px; font-weight: 700;
+      cursor: pointer; font-size: 13px; font-family: inherit; transition: background .15s;
+    }
+    .db-logout-btn:hover { background: #dc2626; }
+
+    /* ── CONTENT AREA ── */
+    .db-content {
+      flex: 1; display: flex; flex-direction: row;
+      overflow: hidden; min-height: 0;
+    }
+
+    /* ── LEFT SCROLL PANEL ── */
+    .db-left-panel {
+      width: 400px; min-width: 360px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto; flex-shrink: 0;
+    }
+    .db-left-panel::-webkit-scrollbar { width: 4px; }
+    .db-left-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    /* Map side: full remaining width */
+    .db-map-col {
+      flex: 1; display: flex; flex-direction: column;
+      min-height: 0; min-width: 0; position: relative;
+    }
+
+    /* ── OVERRIDE app.css for desktop layout ── */
+    /* Undo the old page/section wrappers */
+    .live-tracking-section { padding: 0 !important; margin: 0 !important; }
+    .section-title-wrap { display: none !important; }
+    .page { max-width: 100% !important; margin: 0 !important; padding: 0 !important; display: flex !important; flex-direction: row !important; flex: 1; min-height: 0; overflow: hidden; }
+    .sidebar-layout { display: contents !important; }
+    .content-side {
+      display: block !important;
+      width: 340px !important;
+      min-width: 300px !important;
+      max-width: 340px !important;
+      flex-shrink: 0 !important;
+      background: var(--surface) !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      border-right: 1px solid var(--border) !important;
+      overflow-y: auto;
+      height: 100%;
+      padding-bottom: 30px;
+    }
+    .content-side::-webkit-scrollbar { width: 3px; }
+    .content-side::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    .map-side {
+      display: flex !important;
+      flex-direction: column;
+      flex: 1 !important;
+      min-height: 0;
+      min-width: 0;
+      position: relative;
+      top: unset !important;
+      height: unset !important;
+    }
+    .mapcard {
+      margin: 0 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    #map {
+      flex: 1 !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      border-radius: 0 !important;
+    }
+
+    /* ── CARD / LIST ITEM OVERRIDES (dashboard aesthetic) ── */
+    .list { padding: 0 12px 20px !important; }
+    .card {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-left: 4px solid var(--muted) !important;
+      border-radius: 8px !important;
+      padding: 12px !important;
+      margin-top: 8px !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+      transition: box-shadow .15s !important;
+    }
+    .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.09) !important; }
+    .card.ambulance { border-left-color: var(--red) !important; }
+    .card.health    { border-left-color: var(--green) !important; }
+    .card.halt      { border-left-color: var(--amber) !important; }
+    .card.water     { border-left-color: #3b82f6 !important; }
+    .card.toilet    { border-left-color: var(--accent) !important; }
+    .card.hirkani   { border-left-color: #ec4899 !important; }
+    .card.police    { border-left-color: #1e3a8a !important; }
+
+    .formatted-title {
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      line-height: 1.3 !important;
+      color: var(--text) !important;
+    }
+    .formatted-vehicle {
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      margin-top: 4px !important;
+      color: var(--muted) !important;
+      font-family: 'JetBrains Mono', monospace !important;
+    }
+    .formatted-service {
+      margin-top: 8px !important;
+      padding: 5px 10px !important;
+      border-radius: 6px !important;
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      color: var(--text) !important;
+    }
+    .formatted-field {
+      margin-top: 6px !important;
+      font-size: 11px !important;
+      line-height: 1.4 !important;
+      color: var(--muted) !important;
+    }
+    .formatted-field b { color: var(--text) !important; font-weight: 600 !important; }
+
+    .contact-section { margin-top: 10px !important; }
+    .contact-heading {
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      color: var(--muted) !important;
+      text-transform: uppercase !important;
+      letter-spacing: .07em !important;
+      margin-bottom: 5px !important;
+    }
+    .contact-line {
+      display: grid !important;
+      grid-template-columns: minmax(0,1fr) auto !important;
+      gap: 6px !important;
+      align-items: center !important;
+      margin-top: 5px !important;
+      padding: 7px 9px !important;
+      border-radius: 6px !important;
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+    }
+    .contact-line.ambulance-main {
+      background: rgba(239,68,68,0.05) !important;
+      border-color: rgba(239,68,68,0.2) !important;
+    }
+    .contact-name {
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      color: var(--text) !important;
+    }
+    .phone-pill {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 3px !important;
+      padding: 4px 10px !important;
+      border-radius: 6px !important;
+      background: var(--green) !important;
+      color: #fff !important;
+      text-decoration: none !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+    }
+    .dist {
+      float: right !important;
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 20px !important;
+      padding: 3px 8px !important;
+      font-size: 11px !important;
+      font-weight: 600 !important;
+      color: var(--muted) !important;
+    }
+    .badges { margin-top: 6px !important; display: flex !important; gap: 5px !important; flex-wrap: wrap !important; }
+    .badge {
+      font-size: 10px !important;
+      font-weight: 600 !important;
+      border-radius: 20px !important;
+      padding: 2px 8px !important;
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--muted) !important;
+    }
+    .badge.ok   { background: rgba(16,185,129,0.1) !important; color: var(--green) !important; border-color: rgba(16,185,129,0.2) !important; }
+    .badge.warn { background: rgba(239,68,68,0.08) !important; color: var(--red) !important; border-color: rgba(239,68,68,0.2) !important; }
+
+    /* Action buttons row */
+    .act { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 6px !important; margin-top: 10px !important; }
+    .act a, .act button {
+      border: 1px solid var(--border) !important;
+      border-radius: 6px !important;
+      padding: 7px 6px !important;
+      text-align: center !important;
+      text-decoration: none !important;
+      font-weight: 600 !important;
+      font-size: 11px !important;
+      background: var(--surface2) !important;
+      color: var(--text) !important;
+      font-family: inherit !important;
+      cursor: pointer !important;
+      transition: all .15s !important;
+    }
+    .act a:hover, .act button:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+    .act a.dir {
+      background: var(--accent) !important;
+      color: white !important;
+      border-color: var(--accent) !important;
+    }
+    .act a.dir:hover { background: #4338ca !important; }
+
+    /* ── DASHBOARD PANEL SECTIONS ── */
+    .db-panel-section {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .db-section-label {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    /* Top row (clock + offline status) */
+    .top-row {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 14px 18px !important;
+      border-bottom: 1px solid var(--border) !important;
+      font-size: 12px !important;
+      color: var(--muted) !important;
+      background: var(--surface) !important;
+    }
+    #clock { font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    #offlineStatus { font-size: 11px; color: var(--muted); }
+
+    /* Palkhi tabs */
+    .palkhi-tabs {
+      display: flex !important;
+      gap: 6px !important;
+      padding: 12px 18px !important;
+      border-bottom: 1px solid var(--border) !important;
+      background: var(--surface) !important;
+      flex-wrap: wrap !important;
+    }
+    .tab {
+      padding: 6px 14px !important;
+      border-radius: 6px !important;
+      border: 1px solid var(--border) !important;
+      background: var(--surface2) !important;
+      font-size: 12px !important;
+      font-weight: 500 !important;
+      color: var(--muted) !important;
+      cursor: pointer !important;
+      font-family: inherit !important;
+      transition: all .15s !important;
+    }
+    .tab.active, .tab:hover {
+      background: rgba(79,70,229,0.08) !important;
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+    }
+
+    /* Search toolbar */
+    .search-toolbar { padding: 12px 18px !important; border-bottom: 1px solid var(--border) !important; background: var(--surface) !important; }
+    .search {
+      width: 100% !important;
+      padding: 9px 14px !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 8px !important;
+      font-size: 13px !important;
+      font-family: inherit !important;
+      color: var(--text) !important;
+      background: var(--surface2) !important;
+      margin-bottom: 10px !important;
+      outline: none !important;
+    }
+    .search:focus { border-color: var(--accent) !important; }
+    .chips { display: flex !important; gap: 5px !important; flex-wrap: wrap !important; }
+    .chip {
+      padding: 4px 10px !important;
+      border-radius: 20px !important;
+      border: 1px solid var(--border) !important;
+      background: var(--surface2) !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      color: var(--muted) !important;
+      cursor: pointer !important;
+      font-family: inherit !important;
+      transition: all .15s !important;
+    }
+    .chip.active, .chip:hover {
+      background: rgba(79,70,229,0.08) !important;
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+    }
+
+    /* Section titles inside panel */
+    .sec-title {
+      padding: 12px 18px 6px !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      color: var(--muted) !important;
+      letter-spacing: 0.08em !important;
+      text-transform: uppercase !important;
+      background: var(--surface) !important;
+    }
+
+    /* Mukkam strip */
+    .mukkam-strip-container { padding: 0 18px 14px !important; background: var(--surface) !important; border-bottom: 1px solid var(--border) !important; }
+    .mukkam-strip { display: flex !important; gap: 8px !important; overflow-x: auto !important; padding-bottom: 4px !important; }
+
+    /* Emergency dials */
+    .emergency-dials-grid { display: flex !important; gap: 10px !important; padding: 10px 18px 14px !important; background: var(--surface) !important; border-bottom: 1px solid var(--border) !important; }
+    .dial-btn { border-radius: 10px !important; border: 1px solid var(--border) !important; background: var(--surface2) !important; padding: 10px 14px !important; display: flex !important; align-items: center !important; gap: 10px !important; text-decoration: none !important; flex: 1 !important; transition: box-shadow .15s !important; }
+    .dial-btn:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important; }
+    .dial-btn.red .dial-icon-circle { background: var(--red) !important; }
+    .dial-btn.dark .dial-icon-circle { background: var(--text) !important; }
+    .dial-icon-circle { width: 36px !important; height: 36px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; }
+    .num { font-size: 18px !important; font-weight: 800 !important; color: var(--text) !important; display: block !important; }
+    .dial-text .label { font-size: 10px !important; color: var(--muted) !important; display: block !important; }
+
+    /* Weather card */
+    .weather-alert-card {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      padding: 12px 18px !important;
+      background: var(--surface) !important;
+      border-bottom: 1px solid var(--border) !important;
+      text-decoration: none !important;
+      color: var(--text) !important;
+      font-size: 13px !important;
+    }
+
+    /* Helpline / collapsible sections */
+    .directory-list { background: var(--surface) !important; }
+    .helpline {
+      border-bottom: 1px solid var(--border) !important;
+      background: var(--surface) !important;
+    }
+    .helpline summary {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      padding: 14px 18px !important;
+      cursor: pointer !important;
+      list-style: none !important;
+      font-size: 13px !important;
+    }
+    .helpline summary::-webkit-details-marker { display: none; }
+    .helpline summary b { color: var(--text) !important; font-size: 13px !important; }
+    .helpline summary small { color: var(--muted) !important; font-size: 11px !important; display: block !important; }
+    .helpline .circle {
+      width: 30px !important; height: 30px !important;
+      border-radius: 50% !important;
+      background: var(--surface2) !important;
+      border: 1px solid var(--border) !important;
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      flex-shrink: 0 !important; color: var(--muted) !important;
+    }
+    .helpline .arrow { margin-left: auto !important; color: var(--muted) !important; }
+    details[open] .arrow { transform: rotate(180deg); }
+    .helpline-body { padding: 0 18px 14px !important; }
+    .hrow { display: flex !important; justify-content: space-between !important; align-items: baseline !important; padding: 7px 0 !important; border-bottom: 1px solid var(--border) !important; font-size: 12px !important; }
+    .hrow:last-child { border-bottom: none !important; }
+    .hname { color: var(--muted) !important; flex: 1 !important; }
+    .hnum a { color: var(--accent) !important; text-decoration: none !important; font-weight: 600 !important; margin-left: 8px !important; }
+    .redcall { color: var(--red) !important; }
+
+    /* Results list */
+    .search-results-section { padding: 0 18px 20px !important; background: var(--surface) !important; }
+    .sum { background: var(--surface2) !important; border-radius: 8px !important; padding: 10px 14px !important; margin: 12px 0 !important; font-size: 12px !important; }
+    .sumrow { display: flex !important; justify-content: space-between !important; }
+
+    /* Map header (mh) */
+    .mh {
+      padding: 12px 16px !important;
+      background: var(--surface) !important;
+      border-bottom: 1px solid var(--border) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      flex-shrink: 0 !important;
+    }
+    .mini {
+      padding: 5px 10px !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 6px !important;
+      background: var(--surface2) !important;
+      font-size: 11px !important;
+      font-weight: 500 !important;
+      cursor: pointer !important;
+      font-family: inherit !important;
+      color: var(--text) !important;
+      transition: all .15s !important;
+    }
+    .mini:hover, .mini-hot { border-color: var(--accent) !important; color: var(--accent) !important; background: rgba(79,70,229,0.06) !important; }
+    .ma { display: flex !important; gap: 6px !important; }
+
+    /* Map legend */
+    .legend {
+      display: flex !important;
+      gap: 5px !important;
+      flex-wrap: wrap !important;
+      padding: 10px 14px !important;
+      background: var(--surface) !important;
+      border-top: 1px solid var(--border) !important;
+      flex-shrink: 0 !important;
+    }
+    .legend-btn {
+      padding: 4px 10px !important;
+      border-radius: 20px !important;
+      border: 1px solid var(--border) !important;
+      background: var(--surface2) !important;
+      font-size: 11px !important;
+      color: var(--muted) !important;
+      cursor: pointer !important;
+      font-family: inherit !important;
+      transition: all .15s !important;
+    }
+    .legend-btn.active, .legend-btn:hover {
+      background: rgba(79,70,229,0.08) !important;
+      border-color: var(--accent) !important;
+      color: var(--accent) !important;
+    }
+
+    /* Map overlay card */
+    .map-overlay-card {
+      position: absolute !important;
+      top: 12px !important;
+      right: 12px !important;
+      z-index: 800 !important;
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: 10px !important;
+      padding: 12px 14px !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1) !important;
+      font-size: 12px !important;
+      min-width: 170px !important;
+    }
+    .overlay-badge { display: flex !important; align-items: center !important; gap: 6px !important; font-size: 10px !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: .06em !important; color: var(--muted) !important; margin-bottom: 8px !important; }
+    .status-dot.green { width: 7px !important; height: 7px !important; background: var(--green) !important; border-radius: 50% !important; display: inline-block !important; animation: liveBlink 1.5s step-start infinite !important; }
+    .overlay-row { display: flex !important; justify-content: space-between !important; gap: 10px !important; margin-bottom: 4px !important; }
+    .overlay-row .label { color: var(--muted) !important; font-size: 10px !important; }
+    .overlay-row .value { font-weight: 600 !important; font-size: 11px !important; color: var(--text) !important; }
+    .overlay-timer { display: flex !important; gap: 5px !important; margin-top: 8px !important; align-items: center !important; }
+    .timer-box { background: var(--surface2) !important; border: 1px solid var(--border) !important; border-radius: 4px !important; padding: 3px 7px !important; font-weight: 700 !important; font-size: 13px !important; font-family: 'JetBrains Mono', monospace !important; color: var(--text) !important; }
+    .timer-sep { color: var(--muted) !important; font-size: 11px !important; }
+
+    /* Mukkam collapsible section (new) */
+    .mukkam-details-list {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .mukkam-detail-item details {
+      border-bottom: 1px solid var(--border);
+    }
+    .mukkam-detail-item summary {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 18px;
+      cursor: pointer;
+      list-style: none;
+      font-size: 12px;
+    }
+    .mukkam-detail-item summary::-webkit-details-marker { display: none; }
+    .mukkam-date-pill {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .mukkam-summary-text { flex: 1; min-width: 0; }
+    .mukkam-summary-title { font-weight: 600; color: var(--text); font-size: 12px; }
+    .mukkam-summary-sub { color: var(--muted); font-size: 11px; margin-top: 1px; }
+    .mukkam-detail-body {
+      padding: 0 18px 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .mukkam-field { font-size: 11px; }
+    .mukkam-field-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+    .mukkam-field-val { color: var(--text); font-weight: 500; }
+    .mukkam-field.full { grid-column: 1 / -1; }
+    .mukkam-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .mukkam-action-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+      transition: all .15s;
+    }
+    .mukkam-action-btn:hover { background: rgba(79,70,229,0.08); border-color: var(--accent); }
+    .mukkam-palkhi-tag {
+      display: inline-block;
+      background: rgba(79,70,229,0.08);
+      color: var(--accent);
+      font-size: 9px;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-left: 4px;
+      letter-spacing: .04em;
+    }
+
+    /* docsub filters */
+    .docsub {
+      padding: 8px 14px !important;
+      background: var(--surface2) !important;
+      border-bottom: 1px solid var(--border) !important;
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 5px !important;
+      align-items: center !important;
+    }
+    .docsub-label { font-size: 10px !important; color: var(--muted) !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: .06em !important; flex-shrink: 0 !important; }
+
+    /* Clip section */
+    .clip-list { display: flex !important; gap: 8px !important; overflow-x: auto !important; padding: 4px 0 !important; }
+  </style>
+  <link rel="stylesheet" crossorigin href="/assets/leaflet-CbImCKum.css">
+  <link rel="stylesheet" crossorigin href="/assets/app-BTiiMuSS.css">
+</head>
+<body>
+
+  <!-- ── DASHBOARD SIDEBAR ── -->
+  <aside class="db-sidebar">
+    <div class="db-sidebar-header">
+      <a href="./index.html" class="db-sidebar-logo">Sarathi Grid<span>.</span></a>
+    </div>
+
+    <nav class="db-sidebar-nav">
+      <div class="db-nav-section">Pages</div>
+      <a class="db-nav-item" href="admin-dashboard.html"><span>Command Center</span></a>
+      <a class="db-nav-item" href="pandharpur-terminal.html"><span>Pandharpur Terminal</span></a>
+      <a class="db-nav-item active" href="locator-map.html">
+        <span>Pilgrim Locator</span>
+        <span class="db-nav-badge badge-live">LIVE</span>
+      </a>
+      <a class="db-nav-item" href="ambulance-reroute.html">
+        <span>Ambulance Dispatch</span>
+      </a>
+    </nav>
+
+    <div class="db-role-wrap">
+      <div class="db-role-card">
+        <div class="db-role-title">OPERATING ROLE</div>
+        <div class="db-role-val">Field Coordinator</div>
+      </div>
+      <div class="db-status-card">
+        <span>STATUS:</span>
+        <strong>LIVE TRACKING</strong>
+      </div>
+    </div>
+
+    <div class="db-sidebar-footer">
+      <button class="db-btn-switch" onclick="logoutUser()">Switch Role</button>
+      <div style="font-size:11px;color:var(--muted);"><span class="db-live-dot"></span> GPS Active</div>
+    </div>
+  </aside>
+
+  <!-- ── WORKSPACE ── -->
+  <div class="db-workspace">
+
+    <!-- Header -->
+    <header class="db-header">
+      <div class="db-header-left">
+        <span class="db-header-title">LOCATOR MAP</span>
+        <span class="db-header-sep">|</span>
+        <span class="db-header-sub" data-i18n="map_title">Pilgrim Resource Locator</span>
+      </div>
+      <div class="db-header-right">
+        <button class="db-lang-btn" data-lang="mr" onclick="switchLanguage('mr')">मराठी</button>
+        <button class="db-lang-btn active" data-lang="en" onclick="switchLanguage('en')">English</button>
+        <button class="db-logout-btn" onclick="logoutUser()">Logout</button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="db-content">
+
+  <!-- Core Locator Application Box (kept intact for JS) -->
+  <section class="live-tracking-section" id="live-tracking" style="display:contents">
+    <div class="section-title-wrap"></div>
+    <div class="page map-open" id="page">
+      <div class="sidebar-layout">
+        <div class="content-side">
+          <div class="top-row">
+            <span id="clock">--:--</span>
+            <span id="offlineStatus">ऑफलाईन तयार होत आहे…</span>
+          </div>
+
+          <!-- Tab Filtering -->
+          <div class="palkhi-tabs">
+            <button class="tab active" data-p="all" onclick="setPalkhi('all')" data-i18n="tab_both">दोन्ही</button>
+            <button class="tab" data-p="dnyaneshwar" onclick="setPalkhi('dnyaneshwar')" data-i18n="tab_dnyaneshwar">श्री संत ज्ञानेश्वर महाराज</button>
+            <button class="tab" data-p="tukaram" onclick="setPalkhi('tukaram')" data-i18n="tab_tukaram">जगद्गुरू श्री संत तुकाराम महाराज</button>
+          </div>
+
+          <!-- Search Inputs -->
+          <div class="search-toolbar">
+            <input id="search" class="search" placeholder="ठिकाण, डॉक्टर, वाहन क्रमांक शोधा…" oninput="refresh()">
+            <div class="chips" id="rads">
+              <button class="chip" data-r="100" onclick="setRad(100)" data-i18n="chip_100m">१०० मी</button>
+              <button class="chip" data-r="200" onclick="setRad(200)" data-i18n="chip_200m">२०० मी</button>
+              <button class="chip" data-r="300" onclick="setRad(300)" data-i18n="chip_300m">३०० मी</button>
+              <button class="chip active" data-r="1000" onclick="setRad(1000)" data-i18n="chip_1km">१ किमी</button>
+              <button class="chip" data-r="5000" onclick="setRad(5000)" data-i18n="chip_5km">५ किमी</button>
+              <button class="chip" data-r="99999999" onclick="setRad(99999999)" data-i18n="chip_all">सर्व</button>
+            </div>
+          </div>
+
+          <!-- Mukkams Halt Strip -->
+          <div class="sec-title" data-i18n="mukkam_title">पालखी मुक्काम वेळापत्रक</div>
+          <div class="mukkam-strip-container">
+            <div class="mukkam-strip" id="mukkams">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- ── COLLAPSIBLE MUKKAM DETAILS ── -->
+          <div class="sec-title" style="padding-top:16px;">थांब्यांची माहिती · Halt Details</div>
+          <div class="mukkam-details-list">
+
+            <!-- Pandharpur Arrival -->
+            <div class="mukkam-detail-item">
+              <details>
+                <summary>
+                  <span class="mukkam-date-pill">24 Jul</span>
+                  <div class="mukkam-summary-text">
+                    <div class="mukkam-summary-title">आगमन – पंढरपूर <span class="mukkam-palkhi-tag">DNY</span></div>
+                    <div class="mukkam-summary-sub">श्री संत ज्ञानेश्वर महाराज · Arrival</div>
+                  </div>
+                  <span class="helpline arrow" style="margin-left:auto;color:var(--muted);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </summary>
+                <div class="mukkam-detail-body">
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Service</div>
+                    <div class="mukkam-field-val">श्री संत ज्ञानेश्वर महाराज – (Arrival)</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Location</div>
+                    <div class="mukkam-field-val">Pandharpur</div>
+                  </div>
+                  <div class="mukkam-field full">
+                    <div class="mukkam-field-label">Base Location</div>
+                    <div class="mukkam-field-val">श्री संत ज्ञानेश्वर महाराज पालखी आगमन</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Phase</div>
+                    <div class="mukkam-field-val">Dnyaneshwar Maharaj Palkhi Route</div>
+                  </div>
+                  <div class="mukkam-actions">
+                    <a class="mukkam-action-btn" href="https://www.google.com/maps/dir/?api=1&destination=17.6805,75.3304" target="_blank">📍 Direction</a>
+                    <button class="mukkam-action-btn" onclick="alert('Link copied!')">📤 Share</button>
+                    <a class="mukkam-action-btn" href="#" onclick="if(window.nearAll)nearAll();">All Help (1 km)</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <!-- Alandi Night Halt -->
+            <div class="mukkam-detail-item">
+              <details>
+                <summary>
+                  <span class="mukkam-date-pill">8 Jul</span>
+                  <div class="mukkam-summary-text">
+                    <div class="mukkam-summary-title">मुक्काम – आळंदी (गांधी वाडा) <span class="mukkam-palkhi-tag">DNY</span></div>
+                    <div class="mukkam-summary-sub">श्री संत ज्ञानेश्वर महाराज · Night Halt</div>
+                  </div>
+                  <span class="helpline arrow" style="margin-left:auto;color:var(--muted);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </summary>
+                <div class="mukkam-detail-body">
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Service</div>
+                    <div class="mukkam-field-val">श्री संत ज्ञानेश्वर महाराज – (Night Halt)</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Location</div>
+                    <div class="mukkam-field-val">Alandi (Gandhiwada)</div>
+                  </div>
+                  <div class="mukkam-field full">
+                    <div class="mukkam-field-label">Base Location</div>
+                    <div class="mukkam-field-val">श्री संत ज्ञानेश्वर महाराज पालखी मुक्काम</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Total Toilets</div>
+                    <div class="mukkam-field-val">1,800</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Phase</div>
+                    <div class="mukkam-field-val">Dnyaneshwar Maharaj Palkhi Route</div>
+                  </div>
+                  <div class="mukkam-actions">
+                    <a class="mukkam-action-btn" href="https://www.google.com/maps/dir/?api=1&destination=18.6782865,73.8950336" target="_blank">📍 Direction</a>
+                    <button class="mukkam-action-btn" onclick="alert('Link copied!')">📤 Share</button>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <!-- Jejuri Night Halt -->
+            <div class="mukkam-detail-item">
+              <details>
+                <summary>
+                  <span class="mukkam-date-pill">13 Jul</span>
+                  <div class="mukkam-summary-text">
+                    <div class="mukkam-summary-title">मुक्काम – जेजुरी <span class="mukkam-palkhi-tag">DNY</span></div>
+                    <div class="mukkam-summary-sub">श्री संत ज्ञानेश्वर महाराज · Night Halt</div>
+                  </div>
+                  <span class="helpline arrow" style="margin-left:auto;color:var(--muted);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </summary>
+                <div class="mukkam-detail-body">
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Service</div>
+                    <div class="mukkam-field-val">श्री संत ज्ञानेश्वर महाराज – (Night Halt)</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Location</div>
+                    <div class="mukkam-field-val">Jejuri</div>
+                  </div>
+                  <div class="mukkam-field full">
+                    <div class="mukkam-field-label">Base Location</div>
+                    <div class="mukkam-field-val">श्री संत ज्ञानेश्वर महाराज पालखी मुक्काम</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Total Toilets</div>
+                    <div class="mukkam-field-val">1,800</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Phase</div>
+                    <div class="mukkam-field-val">Dnyaneshwar Maharaj Palkhi Route</div>
+                  </div>
+                  <div class="mukkam-actions">
+                    <a class="mukkam-action-btn" href="https://www.google.com/maps/dir/?api=1&destination=18.2780997,74.1612194" target="_blank">📍 Direction</a>
+                    <button class="mukkam-action-btn" onclick="alert('Link copied!')">📤 Share</button>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+            <!-- Taradgaon Night Halt -->
+            <div class="mukkam-detail-item">
+              <details>
+                <summary>
+                  <span class="mukkam-date-pill">16 Jul</span>
+                  <div class="mukkam-summary-text">
+                    <div class="mukkam-summary-title">मुक्काम – तरडगाव <span class="mukkam-palkhi-tag">DNY</span></div>
+                    <div class="mukkam-summary-sub">श्री संत ज्ञानेश्वर महाराज · Night Halt</div>
+                  </div>
+                  <span class="helpline arrow" style="margin-left:auto;color:var(--muted);"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </summary>
+                <div class="mukkam-detail-body">
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Service</div>
+                    <div class="mukkam-field-val">श्री संत ज्ञानेश्वर महाराज – (Night Halt)</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Location</div>
+                    <div class="mukkam-field-val">Taradgaon</div>
+                  </div>
+                  <div class="mukkam-field full">
+                    <div class="mukkam-field-label">Base Location</div>
+                    <div class="mukkam-field-val">श्री संत ज्ञानेश्वर महाराज पालखी मुक्काम</div>
+                  </div>
+                  <div class="mukkam-field">
+                    <div class="mukkam-field-label">Phase</div>
+                    <div class="mukkam-field-val">Dnyaneshwar Maharaj Palkhi Route</div>
+                  </div>
+                  <div class="mukkam-actions">
+                    <a class="mukkam-action-btn" href="https://www.google.com/maps/dir/?api=1&destination=17.9100,74.7200" target="_blank">📍 Direction</a>
+                    <button class="mukkam-action-btn" onclick="alert('Link copied!')">📤 Share</button>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+          </div><!-- .mukkam-details-list -->
+
+          <!-- Emergency Helplines -->
+          <div class="sec-title" data-i18n="emergency_dials_title">तातडीची मदत · Emergency Dials</div>
+          <div class="emergency-dials-grid">
+            <a class="dial-btn red" href="tel:108">
+              <div class="dial-icon-circle">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 11.5V19c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-7.5l-2.08-5.49zM6.5 15c-.83 0-1.5-.67-1.5-1.5S5.67 12 6.5 12s1.5.67 1.5 1.5S7.33 15 6.5 15zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 10l1.5-4.5h11L19 10H5z"/></svg>
+              </div>
+              <div class="dial-text">
+                <span class="num">108</span>
+                <span class="label" data-i18n="dial_ambulance">रुग्णवाहिका</span>
+              </div>
+            </a>
+            <a class="dial-btn dark" href="tel:112">
+              <div class="dial-icon-circle">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="white"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 15l-4-4 1.41-1.41L11 13.17l5.59-5.59L18 9l-7 7z"/></svg>
+              </div>
+              <div class="dial-text">
+                <span class="num">112</span>
+                <span class="label" data-i18n="dial_emergency">आपत्कालीन</span>
+              </div>
+            </a>
+          </div>
+
+          <!-- Weather Card -->
+          <a class="weather-alert-card" id="wxCard" href="https://www.accuweather.com/en/in/pune/204848/weather-forecast/204848" target="_blank" rel="noopener noreferrer">
+            <span id="wxTemp" style="font-size: 20px; font-weight: 800;">—</span>
+            <span class="weather-info">
+              <span id="wxPlace">पुणे</span> · <span id="wxCond">पाहत आहोत…</span> · पाऊस <span id="wxRain">—</span>
+            </span>
+            <span class="weather-source">विस्तृत अंदाज ↗<br>स्रोत: Open-Meteo</span>
+          </a>
+
+          <!-- Directories -->
+          <div class="directory-list">
+            <details class="helpline" id="helpline">
+              <summary>
+                <span class="circle">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6.62 10.79a15.15 15.15 0 006.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                </span>
+                <span data-i18n="helpline_other"><b>इतर आरोग्य हेल्पलाईन</b><small>आरोग्य, महिला-बाल, मानसिक आरोग्य, आपत्ती मदत</small></span>
+                <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+              </summary>
+              <div class="helpline-body">
+                <div class="hrow">
+                  <div class="hname">आरोग्य सल्ला / तक्रार / रक्त उपलब्धता / मानसिक आरोग्य</div>
+                  <div class="hnum"><a class="redcall" href="tel:104">104</a></div>
+                </div>
+                <div class="hrow">
+                  <div class="hname">जननी शिशु सुरक्षा कार्यक्रम</div>
+                  <div class="hnum"><a href="tel:102">102</a></div>
+                </div>
+                <div class="hrow">
+                  <div class="hname">महात्मा ज्योतिबा फुले जन आरोग्य योजना</div>
+                  <div class="hnum"><a href="tel:155388">155388</a><a href="tel:18002332200">1800 233 2200</a></div>
+                </div>
+                <div class="hrow">
+                  <div class="hname">आपत्ती व्यवस्थापन</div>
+                  <div class="hnum"><a class="redcall" href="tel:1077">1077</a></div>
+                </div>
+              </div>
+            </details>
+
+            <details class="helpline" id="adminbox">
+              <summary>
+                <span class="circle">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                </span>
+                <span data-i18n="helpline_district"><b>जिल्हानिहाय अधिकारी</b><small>पुणे · सातारा · सोलापूर — प्रशासन, आरोग्य व तालुका</small></span>
+                <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+              </summary>
+              <div class="helpline-body" id="admin-body"></div>
+            </details>
+
+            <details class="helpline" id="healthbox">
+              <summary>
+                <span class="circle">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1.4 6h-2.2V6.8c0-.4-.3-.8-.8-.8h-5.2c-.4 0-.8.4-.8.8V9H6.4c-.4 0-.8.3-.8.8v5.2c0 .4.3.8.8.8h2.2v2.2c0 .4.3.8.8.8h5.2c.4 0 .8-.4.8-.8v-2.2h2.2c.4 0 .8-.3.8-.8V9.8c0-.5-.4-.8-.8-.8z"/></svg>
+                </span>
+                <span data-i18n="helpline_state"><b>राज्य / विभागीय / मनपा अधिकारी</b><small>राज्यस्तरीय · विभागीय · महानगरपालिका आरोग्य</small></span>
+                <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+              </summary>
+              <div class="helpline-body" id="health-body"></div>
+            </details>
+
+            <details class="helpline" id="police">
+              <summary>
+                <span class="circle">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                </span>
+                <span data-i18n="helpline_police"><b>पोलीस संपर्क</b><small>पालखी मार्ग ड्युटी · ४४ पोलीस स्टेशन · ८७ अधिकारी</small></span>
+                <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+              </summary>
+              <div class="helpline-body" id="police-body"></div>
+            </details>
+          </div>
+
+          <!-- Health Precaution Clips -->
+          <div class="sec-title" data-i18n="clips_title">आरोग्य संदेश · व्हिडिओ / ऑडिओ</div>
+          <div id="clipFeatured"></div>
+          <details class="helpline" id="clipsBox">
+            <summary>
+              <span class="circle">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-11 12.5v-7l6 3.5-6 3.5z"/></svg>
+              </span>
+              <span><b data-i18n="clips_all">सर्व व्हिडिओ / ऑडिओ पहा</b><small><span id="clipCount"></span> क्लिप · यादी उघडा</small></span>
+              <span class="arrow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+            </summary>
+            <div class="helpline-body">
+              <div class="clip-list" id="clipStrip"></div>
+            </div>
+          </details>
+
+          <!-- Results feed -->
+          <div class="search-results-section">
+            <div class="sum">
+              <div class="sumrow">
+                <span><b id="count">0</b> मदत केंद्रे</span>
+                <span id="gps">GPS सुरू नाही</span>
+              </div>
+            </div>
+            <div id="nearSummary"></div>
+            <div id="list" class="list"></div>
+          </div>
+        </div>
+
+        <!-- Sticky map side -->
+        <div class="map-side">
+          <section class="mapcard" id="mapPanel">
+            <div class="mh">
+              <span><span data-i18n="mapcard_title">मदत नकाशा</span><small id="palkhiTitle" data-i18n="mapcard_subtitle">दोन्ही पालख्या</small></span>
+              <div class="ma">
+                <button class="mini mini-hot" data-cat="near" onclick="nearAll()"><span data-i18n="btn_1km_all">१ किमी — सर्व मदत</span></button>
+                <button class="mini" onclick="locateMe()"><span data-i18n="btn_my_location">माझे स्थान</span></button>
+                <button class="mini" onclick="showMappedArea()"><span data-i18n="btn_back_to_route">मार्गावर परत</span></button>
+              </div>
+            </div>
+
+            <!-- Map filters -->
+            <div class="docsub" id="ambsub" style="display:none">
+              <span class="docsub-label" data-i18n="sub_amb">रुग्णवाहिका प्रकार:</span>
+              <button class="chip active" data-amb="all" onclick="setAmbSub('all')">सर्व</button>
+              <button class="chip" data-amb="als" onclick="setAmbSub('als')">ALS प्रगत</button>
+              <button class="chip" data-amb="bls" onclick="setAmbSub('bls')">BLS मूलभूत</button>
+              <button class="chip" data-amb="102" onclick="setAmbSub('102')">१०२</button>
+              <button class="chip" data-amb="108" onclick="setAmbSub('108')">१०८</button>
+            </div>
+
+            <div class="docsub" id="docsub" style="display:none">
+              <span class="docsub-label" data-i18n="sub_doc">दवाखाना प्रकार:</span>
+              <button class="chip active" data-doc="all" onclick="setDocSub('all')">सर्व</button>
+              <button class="chip" data-doc="phc" onclick="setDocSub('phc')">प्रा.आ.केंद्र</button>
+              <button class="chip" data-doc="rh" onclick="setDocSub('rh')">ग्रामीण/उपजि. रुग्णालय</button>
+              <button class="chip" data-doc="pvt" onclick="setDocSub('pvt')">खाजगी रुग्णालय</button>
+              <button class="chip" data-doc="hbt" onclick="setDocSub('hbt')">हिंदुहृदयसम्राट बाळासाहेब ठाकरे आपला दवाखाना</button>
+              <button class="chip" data-doc="icu" onclick="setDocSub('icu')">ICU/ट्रॉमा</button>
+            </div>
+
+            <div class="docsub" id="watsub" style="display:none">
+              <span class="docsub-label" data-i18n="sub_water">पाणी प्रकार:</span>
+              <button class="chip active" data-wat="all" onclick="setWatSub('all')">सर्व</button>
+              <button class="chip" data-wat="actual" onclick="setWatSub('actual')">टँकर भरण ठिकाण</button>
+              <button class="chip" data-wat="approx" onclick="setWatSub('approx')">अंदाजे (दर ५०० मी)</button>
+            </div>
+
+            <div class="docsub" id="haltsub" style="display:none">
+              <span class="docsub-label" data-i18n="sub_halt">थांबा प्रकार:</span>
+              <button class="chip active" data-halt="all" onclick="setHaltSub('all')">सर्व</button>
+              <button class="chip" data-halt="mukkam" onclick="setHaltSub('mukkam')">मुक्काम</button>
+              <button class="chip" data-halt="visava" onclick="setHaltSub('visava')">विसावा</button>
+            </div>
+
+            <!-- Map container -->
+            <div id="map"></div>
+
+            <!-- Map Live Overlay Card -->
+            <div class="map-overlay-card">
+              <div class="overlay-badge">
+                <span class="status-dot green"></span> Live Tracking
+              </div>
+              <div class="overlay-row">
+                <span class="label"><span data-i18n="dest_label">Today's Destination</span></span>
+                <span class="value"><span data-i18n="dest_val">Loni Kalbhor & Saswad</span></span>
+              </div>
+              <div class="overlay-row">
+                <span class="label"><span data-i18n="eta_label">Estimated Arrival Time</span></span>
+                <span class="value">5:45 PM</span>
+              </div>
+              <div class="overlay-timer">
+                <div class="timer-box">12h</div>
+                <span class="timer-sep">-</span>
+                <div class="timer-box">17m</div>
+                <span class="timer-sep">-</span>
+                <div class="timer-box">08s</div>
+              </div>
+            </div>
+
+            <!-- Map Legend filter button bar -->
+            <div class="legend">
+              <button class="legend-btn active" data-cat="all" onclick="chooseHelp('all')" data-i18n="leg_all">☰ सर्व</button>
+              <button class="legend-btn" data-cat="ambulance" onclick="chooseHelp('ambulance')" data-i18n="leg_ambulance">🚑 रुग्णवाहिका</button>
+              <button class="legend-btn" data-cat="doc" onclick="chooseHelp('doc')" data-i18n="leg_doc">🏥 डॉक्टर/दवाखाना</button>
+              <button class="legend-btn" data-cat="water" onclick="chooseHelp('water')" data-i18n="leg_water">💧 पाणी</button>
+              <button class="legend-btn" data-cat="toilet" onclick="chooseHelp('toilet')" data-i18n="leg_toilet">🚻 शौचालये</button>
+              <button class="legend-btn" data-cat="police" onclick="chooseHelp('police')" data-i18n="leg_police">👮 पोलीस</button>
+              <button class="legend-btn" data-cat="charanseva" onclick="chooseHelp('charanseva')" data-i18n="leg_charanseva">🙏 चरणसेवा</button>
+              <button class="legend-btn" data-cat="hirkani" onclick="chooseHelp('hirkani')" data-i18n="leg_hirkani">🚺 हिरकणी</button>
+              <button class="legend-btn" data-cat="halt" onclick="chooseHelp('halt')" data-i18n="leg_halt">🌙 मुक्काम</button>
+              <button class="legend-btn loc-btn" onclick="locateMe()"><span data-i18n="btn_my_location">📍 माझे स्थान</span></button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </section><!-- .live-tracking-section -->
+
+    </div><!-- .db-content -->
+  </div><!-- .db-workspace -->
+
+  <!-- Load Scripts -->
+  <script src="./assets/vendor/leaflet/leaflet.js"></script>
+  <script src="./data/wari-mukkams.js"></script>
+  <script src="./data/wari-points-dnyaneshwar-halts.js"></script>
+  <script src="./data/wari-points-tukaram-halts.js"></script>
+  <script src="./data/wari-points-tukaram.js"></script>
+  <script src="./data/wari-points-phc102.js"></script>
+  <script src="./data/wari-points-water-filling.js"></script>
+  <script src="./data/wari-points-water-solapur.js"></script>
+  <script src="./data/wari-points-hirkani.js"></script>
+  <script src="./data/wari-points-charanseva.js"></script>
+  <script src="./data/wari-points-police.js"></script>
+  <script src="./data/wari-points-satara.js"></script>
+  <script src="./data/wari-points-solapur.js"></script>
+  <script src="./data/wari-points-toilets.js"></script>
+  <script src="./data/wari-points-icu.js"></script>
+  <script src="./data/wari-points-phc102.js"></script>
+  <script src="./data/wari-points-private.js"></script>
+  <script src="./data/wari-points-dho-mo.js"></script>
+  <script src="./data/wari-points-memsbook.js"></script>
+  <script src="./data/wari-points-mymaps.js"></script>
+  <script src="./data/wari-points-mrsac.js"></script>
+  <script src="./data/wari-points-amb-supplement.js"></script>
+  <script src="./data/wari-ambulance-contacts-2026.js"></script>
+  <script src="./data/wari-officials.js"></script>
+  <script src="./data/wari-dignitaries.js"></script>
+  <script src="./data/wari-clips.js"></script>
+  <script src="./data/wari-routes-full.js"></script>
+  <script src="./data/wari-route-dnyaneshwar-pune.js"></script>
+  <script src="./data/wari-data.js"></script>
+  <script src="./assets/js/app.js"></script>
+  <script src="./data/wari-analytics.js"></script>
+  <script>
+    function logoutUser() {
+      sessionStorage.clear();
+      localStorage.removeItem('wari_truck_data');
+      window.location.href = './login.html';
+    }
+  </script>
+
+  <!-- Full-width resource panel styles + layout fix -->
+  <style>
+    /* Make db-content a column so map row sits on top, resources below */
+    .db-content {
+      flex-direction: column !important;
+      overflow: hidden;
+    }
+    /* Top row: left panel + map side by side, takes available height minus resource panel */
+    .page.map-open {
+      flex: 1 !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    /* Full-width resource panel (injected via JS below map) */
+    #fwr-panel {
+      width: 100%;
+      height: 290px;
+      min-height: 240px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-top: 2px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #fwr-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    #fwr-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--muted);
+    }
+    #fwr-count-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: rgba(79,70,229,0.08);
+      color: var(--accent);
+      border: 1px solid rgba(79,70,229,0.15);
+    }
+    #fwr-panel .search-results-section {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+    #fwr-panel .search-results-section::-webkit-scrollbar { height: 4px; width: 4px; }
+    #fwr-panel .search-results-section::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    #fwr-panel .sum {
+      padding: 10px 24px 6px !important;
+      margin: 0 !important;
+      background: var(--surface2) !important;
+      border-radius: 0 !important;
+      font-size: 11px;
+      border-bottom: 1px solid var(--border);
+    }
+    /* Grid layout for cards inside full-width panel */
+    #fwr-panel .list {
+      display: grid !important;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+      gap: 10px !important;
+      padding: 14px 24px 20px !important;
+      align-items: start;
+    }
+    #fwr-panel .card {
+      margin-top: 0 !important;
+    }
+    /* Hide the old search-results-section inside content-side */
+    .content-side .search-results-section {
+      display: none !important;
+    }
+  </style>
+
+  <!-- Move resource list below map after app.js loads -->
+  <script>
+  (function() {
+    function buildResourcePanel() {
+      var section = document.querySelector('.search-results-section');
+      var workspace = document.querySelector('.db-workspace');
+      if (!section || !workspace) return;
+
+      // Build panel
+      var panel = document.createElement('div');
+      panel.id = 'fwr-panel';
+
+      var header = document.createElement('div');
+      header.id = 'fwr-header';
+      header.innerHTML =
+        '<span id="fwr-title">Resource List</span>' +
+        '<span id="fwr-count-badge" id="fwr-count-badge"></span>';
+      panel.appendChild(header);
+      panel.appendChild(section);
+      workspace.appendChild(panel);
+
+      // Sync badge with #count updates
+      var countEl = document.getElementById('count');
+      if (countEl) {
+        var badge = document.getElementById('fwr-count-badge');
+        var obs = new MutationObserver(function() {
+          if (badge) badge.textContent = countEl.textContent + ' results';
+        });
+        obs.observe(countEl, { childList: true, characterData: true, subtree: true });
+        badge.textContent = (countEl.textContent || '0') + ' results';
+      }
+    }
+
+    // Run after all scripts + app.js initialization
+    if (document.readyState === 'complete') {
+      setTimeout(buildResourcePanel, 200);
+    } else {
+      window.addEventListener('load', function() {
+        setTimeout(buildResourcePanel, 200);
+      });
+    }
+  })();
+  </script>
+</body>
+</html>

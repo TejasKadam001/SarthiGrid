@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sarathi Grid — Truck Driver AI Allocation Portal</title>
+  
+  <!-- Google Fonts & Leaflet -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #16a34a;
+      --success-bg: rgba(22, 163, 74, 0.08);
+      --warning: #d97706;
+      --warning-bg: rgba(217, 119, 6, 0.08);
+      --danger: #dc2626;
+      --danger-bg: rgba(220, 38, 38, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      background: radial-gradient(circle at top right, #0f172a, #020617);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    body {
+      width: 100%;
+      max-width: 480px;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 90px;
+      box-shadow: 0 0 50px rgba(0,0,0,0.8);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Driver Header Navbar */
+    .driver-header {
+      background: #ffffff;
+      color: #0f172a;
+      padding: 10px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1.5px solid #e2e8f0;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .brand-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-logo-area img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .brand-logo {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .brand-logo span {
+      color: #f97316;
+    }
+
+    .driver-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 5px 14px;
+      border-radius: 99px;
+      border: 1.5px solid #e2e8f0;
+    }
+
+    .driver-avatar {
+      width: 30px;
+      height: 30px;
+      background: #1a1a3e;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .driver-info-text {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .driver-info-text strong {
+      display: block;
+      color: #0f172a;
+      font-size: 13px;
+    }
+
+    .btn-logout {
+      background: #fee2e2;
+      color: #dc2626;
+      border: 1.5px solid #fca5a5;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: 12px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-logout:hover {
+      background: #fca5a5;
+      color: #7f1d1d;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1060px;
+      margin: 24px auto;
+      padding: 0 20px;
+    }
+
+    /* Live Wari Location Info Bar */
+    .wari-live-bar {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+
+    .wari-live-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .live-pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ef4444;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25);
+      animation: pulseDot 1.5s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    .wari-live-tag {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* Allotted Access & Live Countdown Timer Card */
+    .access-timer-card {
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      border: 1.5px solid #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    }
+
+    .timer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      align-items: center;
+    }
+
+    @media (max-width: 860px) {
+      .timer-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .timer-item {
+      border-right: 1.5px solid #e2e8f0;
+      padding-right: 16px;
+    }
+
+    .timer-item:last-child {
+      border-right: none;
+      padding-right: 0;
+    }
+
+    .timer-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .timer-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    .countdown-digital {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      color: #0f172a;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .timer-sub {
+      font-size: 11.5px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* Status Alert Banner */
+    .status-banner {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 24px;
+      border: 2px solid var(--primary);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .status-banner.cleared {
+      border-color: var(--success);
+      background: #ffffff;
+    }
+
+    .status-banner.on-hold {
+      border-color: var(--warning);
+      background: #ffffff;
+    }
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 16px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-pill.cleared {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1.5px solid rgba(22, 163, 74, 0.3);
+    }
+
+    .status-pill.on-hold {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1.5px solid rgba(217, 119, 6, 0.3);
+    }
+
+    .truck-plate-tag {
+      font-family: 'Outfit', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f172a;
+      background: #f1f5f9;
+      padding: 4px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    /* 3-Column AI Allocation Grid */
+    .ai-alloc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .ai-alloc-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .alloc-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .alloc-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .alloc-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .alloc-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* AI Reasoning Callout */
+    .ai-reason-box {
+      margin-top: 20px;
+      background: rgba(79, 70, 229, 0.05);
+      border-left: 4px solid var(--primary);
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .ai-reason-box strong {
+      color: var(--primary);
+    }
+
+    /* Map & Directions Layout */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #driverMap {
+      width: 100%;
+      height: 400px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    /* Action Checklist & Buttons */
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .checklist-item:last-child {
+      border-bottom: none;
+    }
+
+    .check-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--success-bg);
+      color: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .btn-action-primary {
+      width: 100%;
+      background: #1a1a3e;
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.2s ease;
+      margin-top: 16px;
+    }
+
+    .btn-action-primary:hover {
+      background: #35298a;
+    }
+
+    .btn-action-secondary {
+      width: 100%;
+      background: #ffffff;
+      color: #dc2626;
+      border: 1.5px solid #fca5a5;
+      padding: 12px;
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s ease;
+    }
+
+    .btn-action-secondary:hover {
+      background: #fef2f2;
+    }
+
+    /* Leaflet Custom Marker Badges */
+    .live-wari-marker-badge {
+      background: #dc2626;
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+      border: 2px solid #ffffff;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .dest-target-badge {
+      background: #ffffff;
+      color: #0f172a;
+      border: 3px solid #f97316;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 99px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+      white-space: nowrap;
+    }
+
+    /* Sticky Bottom Nav Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      border-top: 1.5px solid #e2e8f0;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+      z-index: 1000;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #64748b;
+      cursor: pointer;
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      transition: color 0.15s ease;
+      flex-grow: 1;
+    }
+
+    .nav-btn svg {
+      transition: transform 0.15s ease;
+      color: #64748b;
+    }
+
+    .nav-btn.active {
+      color: var(--primary);
+    }
+
+    .nav-btn.active svg {
+      transform: translateY(-2px);
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Driver Header -->
+  <header class="driver-header">
+    <a href="../index.html" class="brand-logo-area">
+      <img src="/assets/logo-CvxgtQq9.png" alt="Sarathi Grid" onerror="this.style.display='none'; document.getElementById('brandLogoTextIcon').style.display='inline-block';">
+      <span id="brandLogoTextIcon" style="display:none; font-size:24px; margin-right:8px; filter:drop-shadow(0 0 8px var(--primary));">🚚</span>
+      <div class="brand-logo">
+        Sarathi Grid<span>. Driver Portal</span>
+      </div>
+    </a>
+
+    <div style="display:flex; align-items:center;">
+      <div class="driver-badge">
+        <div class="driver-avatar" id="avatarLetter">V</div>
+        <div class="driver-info-text">
+          <strong id="headerDriverName">Vaibhav Marne</strong>
+          <span id="headerTruckNum">MH12YR4051</span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logoutTruckDriver()">Logout</button>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Live Wari Location Banner -->
+    <div class="wari-live-bar">
+      <div class="wari-live-info">
+        <span class="live-pulse-dot"></span>
+        <span>CURRENT WARI LOCATION (PUNE SECTOR): Swargate / Hadapsar Transit Node</span>
+      </div>
+      <div class="wari-live-tag">Live GPS Synchronized</div>
+    </div>
+
+    <!-- Allotted Access & Live Countdown Timer Card -->
+    <div class="access-timer-card" id="timerSection">
+      <div class="timer-grid">
+        <div class="timer-item">
+          <div class="timer-label">ALLOTTED ACCESS TIME</div>
+          <div class="timer-val" id="allottedAccessTime">22:45 IST (Today)</div>
+          <div class="timer-sub">AI Green Slot #4</div>
+        </div>
+
+        <div class="timer-item">
+          <div class="timer-label">TRANSIT WINDOW DURATION</div>
+          <div class="timer-val">45 Minutes</div>
+          <div class="timer-sub">Unrestricted Transit Pass</div>
+        </div>
+
+        <div class="timer-item">
+          <div class="timer-label">ACCESS GRANTED STAMP</div>
+          <div class="timer-val" id="accessGrantedStamp">Today at 21:30 IST</div>
+          <div class="timer-sub">Police Command Verified</div>
+        </div>
+
+        <div class="timer-item timer-countdown-item">
+          <div class="timer-label">LIVE DEPARTURE COUNTDOWN</div>
+          <div class="timer-val countdown-digital" id="timerCountdownVal">--h --m --s</div>
+          <div class="timer-sub" id="timerStatusSub">T-Minus Remaining to Departure Window</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Allocation Status Banner -->
+    <div class="status-banner cleared" id="statusBanner">
+      <div class="status-header">
+        <div class="status-pill cleared" id="statusPill">
+          <span class="status-dot-pulse"></span>
+          <span id="statusText">AI STATUS: CLEARED FOR TRANSIT</span>
+        </div>
+        <div class="truck-plate-tag" id="truckTag">MH12YR4051</div>
+      </div>
+
+      <!-- 3-Column Guidance Grid -->
+      <div class="ai-alloc-grid">
+        <div class="alloc-card">
+          <div class="alloc-label">
+            WHERE TO GO (ASSIGNED ROUTE)
+          </div>
+          <div class="alloc-val" id="valDest">Hadapsar Goods Depot ➔ Pandharpur Sector 3</div>
+          <div class="alloc-sub" id="valCorridor">Corridor: Green Highway Pass #4</div>
+        </div>
+
+        <div class="alloc-card">
+          <div class="alloc-label">
+            WHEN TO GO (DEPARTURE WINDOW)
+          </div>
+          <div class="alloc-val" id="valTime">22:45 IST (Window: 45 Mins)</div>
+          <div class="alloc-sub" id="valSlot">Slot Status: Active Green Slot</div>
+        </div>
+
+        <div class="alloc-card">
+          <div class="alloc-label">
+            ALLOTTED PAYLOAD
+          </div>
+          <div class="alloc-val" id="valPayload">12,000L Potable Water Tanker</div>
+          <div class="alloc-sub" id="valPriority">Priority Level: High (Hydration Sector)</div>
+        </div>
+      </div>
+
+      <!-- AI Optimization Reasoning -->
+      <div class="ai-reason-box" id="aiReasonText">
+        <strong>AI Dispatch Recommendation:</strong> Truck MH12YR4051 is scheduled for immediate departure at 22:45 via the Swargate-Hadapsar Bypass. Water tankers have been prioritized by Sarathi AI due to crowd hydration demands near Sector 3.
+      </div>
+    </div>
+
+    <!-- Main Content Layout (Map + Checklist) -->
+    <div class="content-grid">
+      
+      <!-- Interactive Route Map Card -->
+      <div class="card" id="mapSection">
+        <div class="card-title">
+          <span>Assigned Green Corridor Street Route</span>
+          <span style="font-size:12px; font-weight:600; color:var(--text-muted);">OSRM Road Pathfinder Active</span>
+        </div>
+        <div id="driverMap"></div>
+      </div>
+
+      <!-- Action Panel & Verification Card -->
+      <div class="card" id="checklistSection">
+        <div class="card-title">
+          Driver Transit Verification
+        </div>
+
+        <div class="checklist-item">
+          <div class="check-icon">✓</div>
+          <div>
+            <strong>Vehicle Inspection Verified</strong>
+            <div style="font-size:12px; color:var(--text-muted);">Brakes, pressure, &amp; payload seals checked.</div>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="check-icon">✓</div>
+          <div>
+            <strong>Green Corridor Clearance Active</strong>
+            <div style="font-size:12px; color:var(--text-muted);">Police checkpoints notified of plate MH12YR4051.</div>
+          </div>
+        </div>
+
+        <div class="checklist-item">
+          <div class="check-icon">✓</div>
+          <div>
+            <strong>Emergency GPS Beacon Synced</strong>
+            <div style="font-size:12px; color:var(--text-muted);">Live telemetry transmitting to Command Center.</div>
+          </div>
+        </div>
+
+        <button class="btn-action-primary" onclick="markDeparted()">
+          MARK AS DEPARTED / EN ROUTE
+        </button>
+
+        <button class="btn-action-secondary" onclick="reportEmergency()">
+          REPORT ROAD ANOMALY / SOS
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Environment Config -->
+  <script src="./env.js"></script>
+
+  <script>
+    // Demo Preset Data for Truck Drivers
+    var PRESET_TRUCKS = {
+      'MH12YR4051': {
+        driver: 'Vaibhav Marne',
+        phone: '+919284223412',
+        truck: 'MH12YR4051',
+        type: '12,000L Potable Water Tanker',
+        status: 'CLEARED FOR TRANSIT',
+        statusClass: 'cleared',
+        dest: 'Hadapsar Goods Depot ➔ Pandharpur Sector 3',
+        corridor: 'Green Highway Pass #4',
+        time: '22:45 IST (Window: 45 Mins)',
+        slot: 'Slot Status: Active Green Slot',
+        payload: '12,000L Potable Water Tanker',
+        priority: 'Priority Level: High (Hydration Sector)',
+        reason: '<strong>AI Dispatch Recommendation:</strong> Vehicle MH12YR4051 is registered and cleared by Sarathi AI. Proceed along assigned green corridor pass during allotted 22:45 window.',
+        waypoints: [
+          [18.5018, 73.8576], // Pune Swargate (Current Wari Location)
+          [18.5089, 73.9259], // Hadapsar
+          [18.4552, 74.0041], // Saswad Bypass
+          [18.2770, 74.1630], // Jejuri
+          [18.1030, 74.2140], // Nira
+          [17.9911, 74.4317], // Phaltan
+          [17.6786, 75.3299]  // Pandharpur Target
+        ]
+      },
+      'MH-14-TR-9102': {
+        driver: 'Sunil Deshmukh',
+        phone: '+91 91234 56789',
+        truck: 'MH-14-TR-9102',
+        type: '10-Ton Emergency Ration Freight',
+        status: 'ON HOLD — DENSE CROWD AHEAD',
+        statusClass: 'on-hold',
+        dest: 'Loni Kalbhor Yard ➔ Phaltan Transit Node',
+        corridor: 'Corridor: Holding Sector B',
+        time: '01:30 IST (Delayed Slot)',
+        slot: 'Slot Status: On Hold for Crowd Passage',
+        payload: '10,000 kg Packaged Devotee Meals & Dry Rations',
+        priority: 'Priority Level: Medium (Freight Hold)',
+        reason: '<strong>AI Dispatch Guidance:</strong> Truck MH-14-TR-9102 is placed ON HOLD until 01:30 IST due to peak devotee crowd loading at Dive Ghat Pass. Do not move onto main highway until AI green light is issued.',
+        waypoints: [
+          [18.4890, 74.0275], // Loni Kalbhor (Current Wari Location)
+          [18.3410, 74.0360], // Saswad
+          [17.9867, 74.4332], // Phaltan
+          [17.6786, 75.3299]  // Pandharpur Target
+        ]
+      },
+      'MH-11-AA-3049': {
+        driver: 'Vikram Shinde',
+        phone: '+91 99887 76655',
+        truck: 'MH-11-AA-3049',
+        type: 'Mobile ICU Medical Supply Van',
+        status: 'EMERGENCY GREEN CORRIDOR ACTIVE',
+        statusClass: 'cleared',
+        dest: 'Alandi Base ➔ Pandharpur Central Hospital',
+        corridor: 'Corridor: 24/7 Medical Priority Pass',
+        time: 'IMMEDIATE DEPARTURE (Priority 1)',
+        slot: 'Slot Status: Unrestricted Emergency Channel',
+        payload: 'Mobile Oxygen Cylinders & Critical First-Aid ICU Units',
+        priority: 'Priority Level: CRITICAL (Medical Unit)',
+        reason: '<strong>AI Dispatch Guidance:</strong> Emergency Medical Van MH-11-AA-3049 has been assigned permanent 24/7 Green Corridor clearance. Police outposts along all 6 Palkhi routes have been instructed to clear traffic for your plate number.',
+        waypoints: [
+          [18.6775, 73.8967], // Alandi
+          [18.5018, 73.8576], // Pune Swargate (Current Wari Location)
+          [17.9867, 74.4332], // Phaltan
+          [17.6786, 75.3299]  // Pandharpur Target
+        ]
+      }
+    };
+
+    var currentTruckData = null;
+    var driverMapObj = null;
+
+    function sanitizeField(val, fallback) {
+      if (val === undefined || val === null) return fallback;
+      const str = String(val).trim();
+      if (str === "" || str.toLowerCase() === "none" || str.toLowerCase() === "null" || str.toLowerCase() === "undefined") {
+        return fallback;
+      }
+      return str;
+    }
+
+    function initPortal() {
+      var stored = localStorage.getItem('wari_truck_data');
+      if (stored) {
+        try {
+          currentTruckData = JSON.parse(stored);
+        } catch(e) {}
+      }
+
+      if (!currentTruckData || !currentTruckData.truck) {
+        currentTruckData = PRESET_TRUCKS['MH12YR4051'];
+      }
+
+      var tPlate = currentTruckData.truck || 'MH12YR4051';
+      var preset = PRESET_TRUCKS[tPlate] || {
+        driver: currentTruckData.driver || 'Registered Driver',
+        phone: currentTruckData.phone || '+91 98765 43210',
+        truck: tPlate,
+        type: currentTruckData.type || '12,000L Potable Water Tanker',
+        status: 'CLEARED FOR TRANSIT',
+        statusClass: 'cleared',
+        dest: (currentTruckData.depot || 'Hadapsar Goods Depot') + ' ➔ Pandharpur Sector 3',
+        corridor: 'Green Highway Pass #4',
+        time: '22:45 IST (Window: 45 Mins)',
+        slot: 'Slot Status: Active Green Slot',
+        payload: currentTruckData.type || 'Essential Water & Sanitation Supplies',
+        priority: 'Priority Level: High (AI Allocated)',
+        reason: '<strong>AI Dispatch Recommendation:</strong> Vehicle ' + tPlate + ' is registered and cleared by Sarathi AI. Proceed along assigned green corridor pass during allotted 22:45 window.',
+        waypoints: [
+          [18.5018, 73.8576],
+          [18.5089, 73.9259],
+          [18.4552, 74.0041],
+          [17.6786, 75.3299]
+        ]
+      };
+
+      currentTruckData = Object.assign({}, preset, currentTruckData);
+
+      // Sanitize fields to prevent None/null/undefined display
+      currentTruckData.driver = sanitizeField(currentTruckData.driver, 'Registered Driver');
+      currentTruckData.truck = sanitizeField(currentTruckData.truck, 'MH12YR4051');
+      currentTruckData.type = sanitizeField(currentTruckData.type, '12,000L Potable Water Tanker');
+      currentTruckData.dest = sanitizeField(currentTruckData.dest, 'Hadapsar Goods Depot ➔ Pandharpur Sector 3');
+      currentTruckData.payload = sanitizeField(currentTruckData.payload, 'Essential Water & Sanitation Supplies');
+
+      // Render UI fields
+      document.getElementById('headerDriverName').textContent = currentTruckData.driver;
+      document.getElementById('headerTruckNum').textContent = currentTruckData.truck;
+      document.getElementById('avatarLetter').textContent = (currentTruckData.driver || 'D').charAt(0).toUpperCase();
+
+      document.getElementById('truckTag').textContent = currentTruckData.truck;
+      document.getElementById('statusText').textContent = 'AI STATUS: ' + currentTruckData.status;
+
+      var banner = document.getElementById('statusBanner');
+      var pill = document.getElementById('statusPill');
+      banner.className = 'status-banner ' + (currentTruckData.statusClass || 'cleared');
+      pill.className = 'status-pill ' + (currentTruckData.statusClass || 'cleared');
+
+      document.getElementById('valDest').textContent = currentTruckData.dest;
+      document.getElementById('valCorridor').textContent = currentTruckData.corridor;
+      document.getElementById('valTime').textContent = currentTruckData.time;
+      document.getElementById('valSlot').textContent = currentTruckData.slot;
+      document.getElementById('valPayload').textContent = currentTruckData.payload;
+      document.getElementById('valPriority').textContent = currentTruckData.priority;
+      document.getElementById('aiReasonText').innerHTML = currentTruckData.reason;
+
+      // Access granted timestamp rendering
+      var regTimeStr = currentTruckData.registeredAt ? new Date(currentTruckData.registeredAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '21:30 IST';
+      document.getElementById('accessGrantedStamp').textContent = 'Today at ' + regTimeStr;
+      document.getElementById('allottedAccessTime').textContent = currentTruckData.time.split('(')[0].trim();
+
+      // Launch Live Countdown Timer
+      startCountdownTimer(currentTruckData.time, currentTruckData.statusClass);
+
+      initDriverMap(currentTruckData.waypoints);
+
+      // Dynamically fetch and sync clearance status from local Python Server
+      checkLiveStatusBackend(tPlate);
+      setInterval(function() {
+        checkLiveStatusBackend(tPlate);
+      }, 3000);
+    }
+
+    async function checkLiveStatusBackend(plate) {
+      try {
+        const baseUrl = (window.ENV && window.ENV.API_BASE_URL) || 'http://localhost:5005';
+        const res = await fetch(baseUrl + '/api/truck-status');
+        const data = await res.json();
+        
+        let status = 'PENDING';
+        if (data.cleared_trucks && data.cleared_trucks.some(t => t.truck_plate.toUpperCase() === plate.toUpperCase())) {
+          status = 'CLEARED';
+        } else if (data.on_hold_trucks && data.on_hold_trucks.some(t => t.truck_plate.toUpperCase() === plate.toUpperCase())) {
+          status = 'ON_HOLD';
+        }
+        
+        updateStatusUI(status);
+      } catch (err) {
+        console.warn('Backend server offline during status check:', err);
+      }
+    }
+
+    function updateStatusUI(status) {
+      const banner = document.getElementById('statusBanner');
+      const pill = document.getElementById('statusPill');
+      const statusText = document.getElementById('statusText');
+      const countdownVal = document.getElementById('timerCountdownVal');
+      const timerStatusSub = document.getElementById('timerStatusSub');
+
+      if (status === 'CLEARED') {
+        banner.className = 'status-banner cleared';
+        pill.className = 'status-pill cleared';
+        statusText.textContent = 'AI STATUS: CLEARED FOR TRANSIT';
+        
+        // Reset countdown display styling if it was held/pending
+        if (countdownVal) {
+          countdownVal.style.color = '#10b981';
+        }
+      } else if (status === 'ON_HOLD') {
+        banner.className = 'status-banner on-hold';
+        pill.className = 'status-pill on-hold';
+        statusText.textContent = 'AI STATUS: ON HOLD (Wari Area Capacity Full)';
+        
+        if (countdownVal) {
+          countdownVal.textContent = 'SLOT ON HOLD';
+          countdownVal.style.color = '#f59e0b';
+        }
+        if (timerStatusSub) {
+          timerStatusSub.textContent = 'Queueing at Swargate bypass (Max 2 trucks inside sector)';
+        }
+      } else {
+        // Pending approval (default initial registration state)
+        banner.className = 'status-banner on-hold';
+        pill.className = 'status-pill on-hold';
+        statusText.textContent = 'AI STATUS: AWAITING COMMAND CENTER DISPATCH ORDER';
+        
+        if (countdownVal) {
+          countdownVal.textContent = 'PENDING APPROVAL';
+          countdownVal.style.color = '#64748b';
+        }
+        if (timerStatusSub) {
+          timerStatusSub.textContent = 'Awaiting clearance from Sarathi Command approval gate';
+        }
+      }
+    }
+
+    function startCountdownTimer(timeStr, statusClass) {
+      function updateClock() {
+        if (statusClass === 'on-hold') {
+          document.getElementById('timerCountdownVal').textContent = 'SLOT ON HOLD';
+          document.getElementById('timerCountdownVal').style.color = '#f59e0b';
+          document.getElementById('timerStatusSub').textContent = 'Holding for Crowd Clearing at Dive Ghat';
+          return;
+        }
+
+        var now = new Date();
+        var target = new Date();
+        target.setHours(22, 45, 0, 0);
+
+        var diff = target - now;
+        if (diff <= 0) {
+          document.getElementById('timerCountdownVal').textContent = 'PASS ACTIVE NOW';
+          document.getElementById('timerCountdownVal').style.color = '#10b981';
+          document.getElementById('timerStatusSub').textContent = 'Unrestricted Highway Clearance Pass In Effect';
+          return;
+        }
+
+        var hrs = Math.floor(diff / (1000 * 60 * 60));
+        var mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        var secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        var hStr = (hrs < 10 ? '0' : '') + hrs;
+        var mStr = (mins < 10 ? '0' : '') + mins;
+        var sStr = (secs < 10 ? '0' : '') + secs;
+
+        document.getElementById('timerCountdownVal').textContent = hStr + 'h ' + mStr + 'm ' + sStr + 's';
+        document.getElementById('timerStatusSub').textContent = 'T-Minus Remaining to Departure Window';
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    function initDriverMap(waypoints) {
+      if (driverMapObj) {
+        driverMapObj.remove();
+      }
+
+      driverMapObj = L.map('driverMap', {
+        zoomControl: true,
+        maxZoom: 19
+      }).setView(waypoints[0] || [18.5018, 73.8576], 10);
+
+      // Street-level OpenStreetMap Tile Layer
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+      }).addTo(driverMapObj);
+
+      // 1. Current Live Wari Marker in Pune (Swargate / Hadapsar Node)
+      var currentWariPos = [18.5018, 73.8576]; // Swargate, Pune Sector
+      var wariIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: '<div class="live-wari-marker-badge">LIVE WARI: PUNE</div>',
+        iconSize: [120, 24],
+        iconAnchor: [60, 12]
+      });
+      L.marker(currentWariPos, { icon: wariIcon }).addTo(driverMapObj)
+        .bindPopup('<b>Current Wari Location (Pune Sector):</b> Swargate / Hadapsar Junction<br>Devotee Procession Moving Towards Saswad Bypass');
+
+      // 2. Destination Target Marker (Pandharpur)
+      var destCoords = waypoints[waypoints.length - 1] || [17.6786, 75.3299];
+      var destIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: '<div class="dest-target-badge">PANDHARPUR TERMINAL</div>',
+        iconSize: [140, 28],
+        iconAnchor: [70, 14]
+      });
+      L.marker(destCoords, { icon: destIcon }).addTo(driverMapObj)
+        .bindPopup('<b>Final Destination Terminal:</b> Pandharpur Sector 3');
+
+      // 3. Query OSRM for Street-Level Driving Road Geometry (Not straight lines!)
+      var osrmCoordsStr = waypoints.map(w => w[1] + ',' + w[0]).join(';');
+      var osrmUrl = 'https://router.project-osrm.org/route/v1/driving/' + osrmCoordsStr + '?overview=full&geometries=geojson';
+
+      // Fallback initial multi-point polyline following highway nodes
+      var fallbackPolyline = L.polyline(waypoints, {
+        color: '#16a34a',
+        weight: 6,
+        opacity: 0.9,
+        dashArray: '8, 6'
+      }).addTo(driverMapObj);
+
+      driverMapObj.fitBounds(fallbackPolyline.getBounds(), { padding: [40, 40] });
+
+      // Fetch actual street road geometry from OSRM
+      fetch(osrmUrl)
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.routes && data.routes[0] && data.routes[0].geometry) {
+            driverMapObj.removeLayer(fallbackPolyline);
+            
+            var roadLayer = L.geoJSON(data.routes[0].geometry, {
+              style: {
+                color: '#16a34a',
+                weight: 6,
+                opacity: 0.95
+              }
+            }).addTo(driverMapObj);
+
+            driverMapObj.fitBounds(roadLayer.getBounds(), { padding: [40, 40] });
+          }
+        })
+        .catch(err => {
+          console.warn("OSRM road pathfinder fallback active:", err);
+        });
+    }
+
+    function markDeparted() {
+      alert('SUCCESS: Vehicle ' + currentTruckData.truck + ' marked as DEPARTED. Command Center tracking is active.');
+    }
+
+    function reportEmergency() {
+      alert('EMERGENCY SOS ALERT SENT to Traffic Control Room for Truck ' + currentTruckData.truck + '. Police escort dispatched.');
+    }
+
+    function logoutTruckDriver() {
+      sessionStorage.clear();
+      localStorage.removeItem('wari_truck_data');
+      window.location.href = './login.html';
+    }
+
+    function switchTab(sectionId, btnEl) {
+      document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      btnEl.classList.add('active');
+      
+      const el = document.getElementById(sectionId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initPortal);
+  </script>
+
+  <!-- Bottom Mobile Navigation Bar -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('timerSection', this)">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('mapSection', this)">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 4L9 7"/></svg>
+      <span>Route Map</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('checklistSection', this)">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+      <span>Checklist</span>
+    </button>
+  </div>
+</body>
+</html>

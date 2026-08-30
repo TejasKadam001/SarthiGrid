@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sarathi Grid — Ambulance Dispatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f8fafc;
+      --surface:  #ffffff;
+      --surface2: #f1f5f9;
+      --border:   #e2e8f0;
+      --accent:   #4f46e5;
+      --green:    #10b981;
+      --red:      #ef4444;
+      --amber:    #f59e0b;
+      --orange:   #f97316;
+      --text:     #0f172a;
+      --muted:    #64748b;
+      --sidebar-w: 240px;
+    }
+
+    html, body { min-height: 100%; overflow-x: hidden; background: var(--bg); color: var(--text); }
+    body { font-family: 'Outfit', system-ui, sans-serif; display: flex; flex-direction: row; height: 100vh; overflow: hidden; }
+
+    /* ── SIDEBAR (identical to admin-dashboard) ── */
+    .sidebar {
+      position: sticky; top: 0; height: 100vh;
+      width: var(--sidebar-w); min-width: var(--sidebar-w);
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; z-index: 100; flex-shrink: 0;
+    }
+    .sidebar-header { padding: 24px 24px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
+    .sidebar-logo { text-decoration: none; color: var(--text); font-weight: 800; font-size: 22px; letter-spacing: -0.03em; }
+    .sidebar-logo span { color: var(--accent); }
+
+    .sidebar-nav { display: flex; flex-direction: column; width: 100%; }
+
+    /* section label inside nav */
+    .nav-section-label {
+      padding: 16px 24px 6px;
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+
+    .nav-item {
+      text-decoration: none; padding: 14px 24px; font-size: 14px;
+      color: var(--muted); background: transparent;
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; transition: all 0.15s ease;
+      cursor: pointer; border: none; text-align: left; font-family: inherit; width: 100%;
+    }
+    .nav-item:hover, .nav-item.active { color: var(--accent); background: rgba(79,70,229,0.05); }
+    .nav-item.active::after {
+      content: ''; position: absolute; right: 0; top: 0; bottom: 0;
+      width: 4px; background: var(--accent);
+    }
+    .nav-item.red-link { color: var(--red); }
+    .nav-item.red-link:hover { color: var(--red); background: rgba(239,68,68,0.05); }
+    .nav-badge {
+      font-size: 9px; padding: 1px 6px; border-radius: 20px;
+      font-weight: 700; letter-spacing: .04em;
+    }
+    .badge-new { background: rgba(239,68,68,0.12); color: var(--red); }
+    .badge-live { background: rgba(16,185,129,0.15); color: var(--green); }
+
+    /* Vari dropdown section */
+    .vari-dropdown-wrap { padding: 8px 16px 12px; border-bottom: 1px solid var(--border); }
+    .vari-dropdown-label {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; padding: 0 8px;
+    }
+    .vari-select {
+      width: 100%; padding: 9px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface2);
+      font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--text);
+      cursor: pointer; outline: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+      transition: border-color .15s;
+    }
+    .vari-select:hover, .vari-select:focus { border-color: var(--accent); }
+
+    /* Status cards (same as dashboard) */
+    .role-status-container { padding: 0 24px; margin-top: 24px; }
+    .role-card { padding: 12px; border-radius: 6px; background: var(--surface2); border: 1px solid var(--border); margin-bottom: 12px; }
+    .role-card-title { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 2px; }
+    .role-card-val { font-size: 13px; font-weight: 600; color: var(--text); }
+    .status-card { padding: 10px 12px; border-radius: 6px; background: var(--surface2); border: 1px solid var(--border); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+    .status-card strong { color: var(--green); }
+
+    /* Dispatch info card */
+    .dispatch-info { margin: 16px 16px 0; padding: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; display: none; }
+    .dispatch-info.show { display: block; }
+    .dispatch-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; font-size: 12px; }
+    .dispatch-label { color: var(--muted); font-size: 11px; }
+    .dispatch-val { font-weight: 600; color: var(--text); font-size: 12px; text-align: right; max-width: 55%; }
+    .dispatch-val.green { color: var(--green); }
+    .dispatch-val.orange { color: var(--orange); }
+    .dispatch-eta-row { display: flex; gap: 8px; margin-top: 10px; }
+    .dispatch-eta-box { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px; text-align: center; }
+    .dispatch-eta-val { font-size: 18px; font-weight: 700; color: var(--green); line-height: 1; }
+    .dispatch-eta-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; }
+
+    /* Sidebar footer */
+    .sidebar-footer { margin-top: auto; padding: 24px; border-top: 1px solid var(--border); }
+    .btn-switch { text-decoration: none; color: var(--muted); font-size: 13px; font-weight: 500; display: block; margin-bottom: 12px; background: none; border: none; cursor: pointer; font-family: inherit; text-align: left; }
+    .btn-switch:hover { color: var(--text); }
+    .sidebar-agent-status { font-size: 11px; color: #777; }
+
+    /* ── WORKSPACE ── */
+    .workspace { flex: 1; display: flex; flex-direction: column; min-height: 100vh; background: var(--bg); overflow: hidden; }
+
+    /* ── HEADER (same as dashboard) ── */
+    .header {
+      height: 64px; min-height: 64px; border-bottom: 1px solid var(--border);
+      padding: 0 40px; display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-title { font-size: 13px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text); }
+    .header-sep { color: var(--border); font-size: 18px; }
+    .header-sub { font-size: 13px; color: var(--muted); }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+
+    /* Dispatch button */
+    .btn-dispatch {
+      background: var(--red); color: white; border: none;
+      padding: 9px 20px; border-radius: 8px; font-weight: 700;
+      cursor: pointer; font-size: 13px; font-family: 'Outfit', sans-serif;
+      transition: background .15s; display: flex; align-items: center; gap: 7px;
+    }
+    .btn-dispatch:hover { background: #dc2626; }
+    .btn-dispatch:disabled { background: var(--muted); cursor: not-allowed; }
+    .btn-outline { padding: 7px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; font-family: 'Outfit', sans-serif; transition: all .15s; text-decoration: none; display: inline-flex; align-items: center; }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Live dot */
+    .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; display: inline-block; animation: liveBlink 1.5s step-start infinite; }
+    @keyframes liveBlink { 50% { opacity: 0; } }
+
+    /* Map */
+    #ambMap { flex: 1; min-height: 0; }
+
+    /* Map legend */
+    .map-legend {
+      position: absolute; bottom: 16px; right: 16px;
+      background: rgba(255,255,255,0.95); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 14px; z-index: 800;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .legend-title { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text); margin-bottom: 6px; }
+    .l-line { width: 26px; height: 4px; border-radius: 2px; }
+    .l-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; }
+
+    /* Map hint */
+    .map-hint {
+      position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      background: white; border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 18px; font-size: 12px; color: var(--muted); z-index: 700;
+      pointer-events: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      font-weight: 500; white-space: nowrap;
+    }
+
+    /* Overrides */
+    .leaflet-popup-content-wrapper { border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); font-family: 'Outfit', sans-serif; }
+    .leaflet-tooltip { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <a href="./index.html" class="sidebar-logo">Sarathi Grid<span>.</span></a>
+  </div>
+
+  <!-- All Pages Navigation -->
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Pages</div>
+
+    <a class="nav-item" href="admin-dashboard.html">
+      <span>Command Center</span>
+    </a>
+    <a class="nav-item" href="pandharpur-terminal.html">
+      <span>Pandharpur Terminal</span>
+    </a>
+    <a class="nav-item" href="locator-map.html">
+      <span>Locator Map</span>
+      <span class="nav-badge badge-live">LIVE</span>
+    </a>
+    <a class="nav-item active" href="ambulance-reroute.html">
+      <span>Ambulance Dispatch</span>
+    </a>
+  </nav>
+
+  <!-- Dispatch Status Card -->
+  <div class="dispatch-info" id="dispatchInfo">
+    <div class="dispatch-row">
+      <span class="dispatch-label">Palkhi</span>
+      <span class="dispatch-val orange" id="diVariName">—</span>
+    </div>
+    <div class="dispatch-row">
+      <span class="dispatch-label">Position</span>
+      <span class="dispatch-val" id="diPos" style="font-family:'JetBrains Mono',monospace;font-size:10px;">—</span>
+    </div>
+    <div class="dispatch-row">
+      <span class="dispatch-label">Hospitals (10km)</span>
+      <span class="dispatch-val green" id="diHospCount">Searching…</span>
+    </div>
+    <div class="dispatch-row">
+      <span class="dispatch-label">Nearest</span>
+      <span class="dispatch-val green" id="diHospName">—</span>
+    </div>
+    <div class="dispatch-eta-row">
+      <div class="dispatch-eta-box">
+        <div class="dispatch-eta-val" id="diETA">—</div>
+        <div class="dispatch-eta-label">ETA min</div>
+      </div>
+      <div class="dispatch-eta-box">
+        <div class="dispatch-eta-val" id="diDist">—</div>
+        <div class="dispatch-eta-label">km road</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role + Status -->
+  <div class="role-status-container">
+    <div class="role-card">
+      <div class="role-card-title">OPERATING ROLE</div>
+      <div class="role-card-val">Emergency Coordinator</div>
+    </div>
+    <div class="status-card">
+      <span>STATUS:</span>
+      <strong id="systemStatus">NOMINAL</strong>
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="btn-switch" onclick="window.location.href='login.html'">Switch Role</button>
+    <div class="sidebar-agent-status"><span class="live-dot"></span> Agent-2 Navigator online</div>
+  </div>
+</aside>
+
+<!-- ── WORKSPACE ── -->
+<main class="workspace">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <span class="header-title">AMBULANCE DISPATCH</span>
+      <span class="header-sep">|</span>
+      <span class="header-sub">Emergency Medical Routing — Palkhi Corridor</span>
+    </div>
+    <div class="header-right">
+      <select class="vari-select" id="variSelect" onchange="onVariChange()" style="width: 220px; margin-right: 12px; height: 36px; padding: 0 30px 0 12px;">
+        <option value="">— Select Palkhi —</option>
+        <option value="dnyaneshwar">Sant Dnyaneshwar Maharaj Palkhi</option>
+        <option value="tukaram">Sant Tukaram Maharaj Palkhi</option>
+        <option value="eknath">Sant Eknath Maharaj Palkhi</option>
+        <option value="gajanan">Sant Gajanan Maharaj Palkhi</option>
+        <option value="muktabai">Sant Muktabai Palkhi</option>
+        <option value="sopandev">Sant Sopandev Palkhi</option>
+      </select>
+      <a href="admin-dashboard.html" class="btn-outline">← Dashboard</a>
+    </div>
+  </header>
+
+  <!-- MAP CONTAINER -->
+  <div style="position:relative;flex:1;min-height:0;">
+    <div id="ambMap" style="width:100%;height:100%;"></div>
+    <div class="map-hint" id="mapHint">👈 Select a Palkhi from the dropdown to dispatch an ambulance</div>
+
+    <!-- Legend -->
+    <div class="map-legend">
+      <div class="legend-title">Map Legend</div>
+      <div class="legend-item"><div class="l-line" style="background:#f97316;"></div>Vari Route (10 km ahead)</div>
+      <div class="legend-item"><div class="l-dot" style="background:#f97316;border-color:#f97316;"></div>Palkhi Live Position</div>
+      <div class="legend-item"><div class="l-dot" style="background:#10b981;border-color:#10b981;"></div>Hospital within 10 km</div>
+      <div class="legend-item"><div class="l-line" style="background:#10b981;"></div>Ambulance Route (road)</div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+'use strict';
+
+// ── Vari Data ─────────────────────────────────────────────────────────────────
+var VARI = {
+  dnyaneshwar: {
+    name: 'Sant Dnyaneshwar Maharaj Palkhi',
+    short: 'Dnyaneshwar Palkhi',
+    code: 'DNY-2026',
+    dotColor: '#8b5cf6',
+    pos: [18.5018, 73.8576],
+    ahead: [[18.5018, 73.8576], [18.4650, 73.9000]],
+    origin: 'Alandi, Pune'
+  },
+  tukaram: {
+    name: 'Sant Tukaram Maharaj Palkhi',
+    short: 'Tukaram Palkhi',
+    code: 'TUK-2026',
+    dotColor: '#10b981',
+    pos: [18.4890, 74.0275],
+    ahead: [[18.4890, 74.0275], [18.4600, 74.1500]],
+    origin: 'Dehu, Pune'
+  },
+  eknath: {
+    name: 'Sant Eknath Maharaj Palkhi',
+    short: 'Eknath Palkhi',
+    code: 'EKN-2026',
+    dotColor: '#d946ef',
+    pos: [19.1678, 75.1812],
+    ahead: [[19.1678, 75.1812], [19.0900, 75.2100]],
+    origin: 'Paithan, Chh. Sambhajinagar'
+  },
+  gajanan: {
+    name: 'Sant Gajanan Maharaj Palkhi',
+    short: 'Gajanan Palkhi',
+    code: 'GAJ-2026',
+    dotColor: '#f59e0b',
+    pos: [19.7214, 77.1492],
+    ahead: [[19.7214, 77.1492], [19.6500, 77.0700]],
+    origin: 'Shegaon, Buldhana'
+  },
+  muktabai: {
+    name: 'Sant Muktabai Palkhi',
+    short: 'Muktabai Palkhi',
+    code: 'MUK-2026',
+    dotColor: '#06b6d4',
+    pos: [19.8762, 75.3433],
+    ahead: [[19.8762, 75.3433], [19.8000, 75.3000]],
+    origin: 'Muktainagar, Jalgaon'
+  },
+  sopandev: {
+    name: 'Sant Sopandev Palkhi',
+    short: 'Sopandev Palkhi',
+    code: 'SOP-2026',
+    dotColor: '#f97316',
+    pos: [18.3410, 74.0360],
+    ahead: [[18.3410, 74.0360], [18.2681, 74.1563]],
+    origin: 'Saswad, Pune'
+  }
+};
+
+// Fallback hospitals (used if Overpass times out)
+var FALLBACK = {
+  dnyaneshwar: [
+    {lat:18.5160,lng:73.8553,name:'Sassoon General Hospital, Pune'},
+    {lat:18.4960,lng:73.8512,name:'Surya Hospital Hadapsar'},
+    {lat:18.5323,lng:73.8727,name:'Ruby Hall Clinic'},
+    {lat:18.5105,lng:73.9200,name:'Columbia Asia Hospital'},
+    {lat:18.4800,lng:73.8700,name:'Noble Hospital Hadapsar'}
+  ],
+  tukaram: [
+    {lat:18.4914,lng:73.9117,name:'Noble Hospital Wanowrie'},
+    {lat:18.5105,lng:73.9980,name:'Life Point Hospital'},
+    {lat:18.4400,lng:74.0500,name:'Uruli Kanchan PHC'},
+    {lat:18.4890,lng:74.0800,name:'Loni Kalbhor CHC'}
+  ],
+  eknath: [
+    {lat:19.1700,lng:75.1850,name:'Pathardi Rural Hospital'},
+    {lat:19.0948,lng:74.7480,name:'Civil Hospital Ahmednagar'},
+    {lat:19.2000,lng:75.1500,name:'Nevasa PHC'}
+  ],
+  gajanan: [
+    {lat:19.7170,lng:77.1490,name:'District Hospital Hingoli'},
+    {lat:19.6800,lng:77.0900,name:'Sengaon Rural Hospital'},
+    {lat:19.7500,lng:77.2000,name:'Aundha Nagnath PHC'}
+  ],
+  muktabai: [
+    {lat:19.8762,lng:75.3433,name:'Govt Medical College Aurangabad'},
+    {lat:19.8500,lng:75.3100,name:'Divisional Civil Hospital'},
+    {lat:19.9000,lng:75.3800,name:'Waluj PHC'}
+  ],
+  sopandev: [
+    {lat:18.3313,lng:74.0245,name:'Saswad Rural Hospital'},
+    {lat:18.2681,lng:74.1563,name:'Jejuri PHC'},
+    {lat:18.3900,lng:74.0500,name:'Hadapsar CHC'}
+  ]
+};
+
+// ── Map ───────────────────────────────────────────────────────────────────────
+var map = L.map('ambMap', { center:[18.5,75.0], zoom:7, zoomControl:true, maxZoom:19 });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>',
+  maxZoom:19
+}).addTo(map);
+
+var mapLayers  = [];
+var activeVari = null;
+var fallbackTmr = null;
+
+// ── Vari select change ────────────────────────────────────────────────────────
+function onVariChange() {
+  var key = document.getElementById('variSelect').value;
+  if (!key) return;
+  selectVari(key);
+}
+
+function selectVari(key) {
+  activeVari = key;
+  clearMapLayers();
+  if (fallbackTmr) { clearTimeout(fallbackTmr); fallbackTmr = null; }
+
+  var v = VARI[key];
+
+  // Hide hint
+  var hint = document.getElementById('mapHint');
+  if (hint) hint.style.display = 'none';
+
+  // Fly to live position
+  map.flyTo(v.pos, 13, { duration: 1.5 });
+
+  // Show dispatch panel
+  var di = document.getElementById('dispatchInfo');
+  di.classList.add('show');
+  document.getElementById('diVariName').textContent = v.short;
+  document.getElementById('diPos').textContent = v.pos[0].toFixed(4) + ', ' + v.pos[1].toFixed(4);
+  document.getElementById('diHospCount').textContent = 'Searching…';
+  document.getElementById('diHospName').textContent = '—';
+  document.getElementById('diETA').textContent = '—';
+  document.getElementById('diDist').textContent = '—';
+  document.getElementById('systemStatus').textContent = 'DISPATCHING';
+  document.getElementById('systemStatus').style.color = '#f97316';
+
+  // 1. Orange Vari live position marker
+  placeVariMarker(v.pos, v.name, v.code, v.dotColor);
+
+  // 2. Orange Vari ahead path via OSRM (road-snapped)
+  drawOSRM(v.ahead, '#f97316', 6, v.name + ' — Route (10 km ahead)', true);
+
+  // 3. Fetch hospitals from Overpass
+  findHospitals(v.pos[0], v.pos[1], key);
+}
+
+// ── Markers ───────────────────────────────────────────────────────────────────
+function placeVariMarker(pos, name, code, dotColor) {
+  var outer = L.circleMarker(pos, { radius:22, fillColor:'#f97316', fillOpacity:0.12, color:'#f97316', weight:1, opacity:0.4 }).addTo(map);
+  var mid   = L.circleMarker(pos, { radius:13, fillColor:'#f97316', fillOpacity:0.22, color:'#f97316', weight:1.5, opacity:0.6 }).addTo(map);
+  var core  = L.circleMarker(pos, { radius:8,  fillColor:'#f97316', fillOpacity:1,    color:'#fff',    weight:2.5 }).addTo(map);
+  core.bindPopup('<b style="color:#f97316;">🚶 ' + name + '</b><br><span style="font-family:monospace;font-size:11px;">' + code + '</span><br><small>Live Position</small>');
+  mapLayers.push(outer, mid, core);
+}
+
+// ── Clear ─────────────────────────────────────────────────────────────────────
+function clearMapLayers() {
+  mapLayers.forEach(function(l) { try { map.removeLayer(l); } catch(e){} });
+  mapLayers = [];
+}
+
+// ── OSRM road-snapped route ───────────────────────────────────────────────────
+function drawOSRM(waypoints, color, weight, label, glow) {
+  if (!waypoints || waypoints.length < 2) return Promise.resolve();
+  var coordStr = waypoints.map(function(w){ return w[1]+','+w[0]; }).join(';');
+  var url = 'https://router.project-osrm.org/route/v1/driving/' + coordStr + '?overview=full&geometries=geojson';
+
+  var fallback = L.polyline(waypoints, { color:color, weight:weight, opacity:0.3, dashArray:'6,10' }).addTo(map);
+  mapLayers.push(fallback);
+
+  return fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.routes || !data.routes.length) return null;
+      var coords = data.routes[0].geometry.coordinates.map(function(c){ return [c[1],c[0]]; });
+      try { map.removeLayer(fallback); } catch(e){}
+      var fi = mapLayers.indexOf(fallback); if (fi !== -1) mapLayers.splice(fi, 1);
+
+      if (glow) {
+        var g = L.polyline(coords, { color:color, weight:weight+14, opacity:0.10, lineCap:'round' }).addTo(map);
+        mapLayers.push(g);
+      }
+      var line = L.polyline(coords, { color:color, weight:weight, opacity:0.95, lineCap:'round' }).addTo(map);
+      line.bindTooltip(label, { sticky:true });
+      mapLayers.push(line);
+      return { coords:coords, duration:data.routes[0].duration, distance:data.routes[0].distance };
+    })
+    .catch(function(){ return null; });
+}
+
+// ── Haversine ─────────────────────────────────────────────────────────────────
+function distKm(lat1, lng1, lat2, lng2) {
+  var R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── Overpass API ──────────────────────────────────────────────────────────────
+function findHospitals(lat, lng, variKey) {
+  var q = '[out:json][timeout:18];(' +
+    'node["amenity"="hospital"](around:10000,'+lat+','+lng+');' +
+    'node["amenity"="clinic"](around:10000,'+lat+','+lng+');' +
+    'node["healthcare"="hospital"](around:10000,'+lat+','+lng+');' +
+    'way["amenity"="hospital"](around:10000,'+lat+','+lng+');' +
+    ');out center;';
+
+  fallbackTmr = setTimeout(function(){
+    if (activeVari !== variKey) return;
+    drawHospitals(FALLBACK[variKey] || [], variKey);
+  }, 5500);
+
+  fetch('https://overpass-api.de/api/interpreter', { method:'POST', body:q })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      clearTimeout(fallbackTmr); fallbackTmr = null;
+      if (activeVari !== variKey) return;
+      var hosps = [];
+      (data.elements || []).forEach(function(e){
+        var hlat = e.lat || (e.center && e.center.lat);
+        var hlng = e.lon || (e.center && e.center.lon);
+        var nm = e.tags && (e.tags.name || e.tags['name:en']);
+        if (hlat && hlng && nm) hosps.push({lat:hlat, lng:hlng, name:nm});
+      });
+      if (!hosps.length) hosps = FALLBACK[variKey] || [];
+      drawHospitals(hosps, variKey);
+    })
+    .catch(function(){
+      clearTimeout(fallbackTmr); fallbackTmr = null;
+      if (activeVari !== variKey) return;
+      drawHospitals(FALLBACK[variKey] || [], variKey);
+    });
+}
+
+// ── Draw hospitals + ambulance route ─────────────────────────────────────────
+function drawHospitals(hospitals, variKey) {
+  if (activeVari !== variKey || !hospitals.length) {
+    document.getElementById('diHospCount').textContent = hospitals.length ? hospitals.length + ' found' : 'None found';
+    return;
+  }
+
+  var vPos = VARI[variKey].pos;
+  var nearest = null, nearDist = Infinity;
+
+  hospitals.forEach(function(h){
+    var d = distKm(vPos[0], vPos[1], h.lat, h.lng);
+    if (d < nearDist) { nearDist = d; nearest = h; }
+
+    var dot = L.circleMarker([h.lat, h.lng], {
+      radius:7, fillColor:'#10b981', fillOpacity:0.85, color:'#fff', weight:2
+    }).addTo(map);
+    dot.bindPopup('<b>🏥 ' + h.name + '</b><br><small>' + d.toFixed(1) + ' km from Palkhi</small>');
+    mapLayers.push(dot);
+  });
+
+  document.getElementById('diHospCount').textContent = hospitals.length + ' within 10 km';
+
+  if (!nearest) return;
+
+  // Highlight nearest hospital — larger green dot
+  var nearDot = L.circleMarker([nearest.lat, nearest.lng], {
+    radius:13, fillColor:'#059669', fillOpacity:1, color:'#fff', weight:3, zIndexOffset:1000
+  }).addTo(map);
+  nearDot.bindPopup('<b style="color:#059669;">🏥 ' + nearest.name + '</b><br><strong>' + nearDist.toFixed(1) + ' km — NEAREST</strong><br><small>Ambulance dispatched</small>');
+  nearDot.openPopup();
+  mapLayers.push(nearDot);
+
+  document.getElementById('diHospName').textContent = nearest.name;
+  document.getElementById('systemStatus').textContent = 'DISPATCHED';
+  document.getElementById('systemStatus').style.color = '#10b981';
+
+  // Green OSRM ambulance route
+  var ambCoords = [vPos, [nearest.lat, nearest.lng]];
+  var coordStr  = vPos[1]+','+vPos[0]+';'+nearest.lng+','+nearest.lat;
+  var url = 'https://router.project-osrm.org/route/v1/driving/' + coordStr + '?overview=full&geometries=geojson';
+
+  var fallback = L.polyline(ambCoords, { color:'#10b981', weight:5, opacity:0.35, dashArray:'6,10' }).addTo(map);
+  mapLayers.push(fallback);
+
+  fetch(url)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if (!data.routes || !data.routes.length) return;
+      var coords  = data.routes[0].geometry.coordinates.map(function(c){ return [c[1],c[0]]; });
+      var durMin  = Math.round(data.routes[0].duration / 60);
+      var distKmR = (data.routes[0].distance / 1000).toFixed(1);
+
+      try { map.removeLayer(fallback); } catch(e){}
+      var fi = mapLayers.indexOf(fallback); if (fi !== -1) mapLayers.splice(fi, 1);
+
+      // Glow + main line + animated dashes
+      var glow = L.polyline(coords, { color:'#10b981', weight:18, opacity:0.10, lineCap:'round' }).addTo(map);
+      var line = L.polyline(coords, { color:'#10b981', weight:5,  opacity:0.95, lineCap:'round' }).addTo(map);
+      var dash = L.polyline(coords, { color:'#fff',    weight:2,  opacity:0.5,  dashArray:'10,20' }).addTo(map);
+      line.bindTooltip('🚑 Ambulance → ' + nearest.name + ' (' + durMin + ' min)', { sticky:true });
+      mapLayers.push(glow, line, dash);
+
+      document.getElementById('diETA').textContent  = durMin;
+      document.getElementById('diDist').textContent = distKmR;
+    })
+    .catch(function(){});
+}
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 // ==========================================================================
 const T = {
   mr: {
-    site_title: 'आरोग्य संपन्न वारी',
+    site_title: 'Sarathi Grid',
     nav_home: 'होम',
     nav_live: 'थेट मागोवा',
     nav_route: 'मार्ग नकाशा',
@@ -179,7 +179,7 @@ const T = {
     dy_call_btn: 'फोन करा'
   },
   en: {
-    site_title: 'Healthy Wari',
+    site_title: 'Sarathi Grid',
     nav_home: 'Home',
     nav_live: 'Live Tracking',
     nav_route: 'Route Map',

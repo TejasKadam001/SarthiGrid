@@ -1,0 +1,3336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sarathi Grid — Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --border: #e2e8f0;
+      --border-light: #cbd5e1;
+      --accent: #4f46e5;
+      --green: #10b981;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --text: #0f172a;
+      --muted: #64748b;
+      --sidebar-w: 240px;
+    }
+
+    html, body { min-height: 100%; overflow-x: hidden; overflow-y: auto; background-color: var(--bg); color: var(--text); }
+
+    body {
+      font-family: 'Outfit', system-ui, sans-serif;
+      display: flex;
+      flex-direction: row;
+    }
+
+    /* ── LEFT SIDEBAR ── */
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sidebar-logo {
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+
+    .sidebar-logo span { color: var(--accent); }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      marginTop: 16px;
+      width: 100%;
+    }
+
+    .nav-item {
+      text-decoration: none;
+      padding: 14px 24px;
+      font-size: 14px;
+      color: var(--muted);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      border: none;
+      text-align: left;
+      font-family: inherit;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      color: var(--accent);
+      background: rgba(79, 70, 229, 0.05);
+    }
+
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent);
+    }
+
+    .role-status-container {
+      padding: 0 24px;
+      margin-top: 32px;
+    }
+
+    .role-card {
+      padding: 12px;
+      border-radius: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .role-card-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .role-card-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .status-card {
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .status-card strong { color: var(--text); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .btn-switch {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      display: block;
+      margin-bottom: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
+    }
+
+    .btn-switch:hover { color: var(--text); }
+
+    .active-agents { font-size: 11px; color: #777777; }
+
+    /* ── MAIN WORKSPACE ── */
+    .workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: var(--bg);
+      overflow: visible;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      height: 64px;
+      min-height: 64px;
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-title {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: var(--text);
+    }
+
+    .header-sep { color: var(--border); }
+
+    .header-sub { color: var(--muted); font-size: 11px; font-weight: 600; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-white {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.2s;
+    }
+
+    .btn-white:hover { opacity: 0.9; }
+
+    .btn-outline {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 0.2s;
+    }
+
+    .btn-outline:hover { background-color: var(--surface2); }
+
+    .route-select {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* ── MAP CONTAINER ── */
+    .map-section {
+      height: 520px;
+      min-height: 520px;
+      position: relative;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      width: 100%;
+    }
+
+    #map { width: 100%; height: 100%; }
+
+    /* Telemetry Overlay Widget */
+    .map-info-overlay {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      z-index: 500;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 18px 22px;
+      width: 340px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .overlay-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .overlay-title {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      color: var(--text);
+    }
+
+    .overlay-subtitle {
+      font-size: 9px;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .overlay-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 10px 0;
+    }
+
+    .overlay-detail {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .overlay-detail strong { color: var(--text); font-weight: 700; }
+
+    /* Glassmorphic tracking widget floating over bottom-right */
+    .convoy-widget {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      z-index: 500;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      border-radius: 16px;
+      padding: 20px;
+      width: 320px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.06);
+    }
+
+    .convoy-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .convoy-header h3 { color: var(--text) !important; }
+
+    .convoy-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.25);
+      border-radius: 99px;
+      padding: 3px 8px;
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background-color: var(--green);
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1.3s ease infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .telemetry-row span { color: var(--muted) !important; }
+    .telemetry-row strong { font-weight: 700; color: var(--text) !important; }
+
+    .timer-container {
+      margin-top: 12px;
+    }
+
+    .timer-label {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .timer-bar {
+      display: flex;
+      justify-content: center;
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: 8px;
+      padding: 10px;
+      color: #dc2626;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .coordinates-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 9px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--muted);
+    }
+
+    /* ── UNIFIED SCROLLABLE STATS & COMPARISON SECTION ── */
+    .dashboard-content {
+      padding: 32px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      background: var(--bg);
+      overflow: visible;
+    }
+
+    /* Category legend chips */
+    .category-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+
+    .category-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .cat-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .cat-chip {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .cat-chip.active, .cat-chip:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+
+    /* Telemetry Header Card */
+    .telemetry-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    .telemetry-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .telemetry-card-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .telemetry-main-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    .telemetry-main-title span {
+      color: var(--muted);
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .telemetry-subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .telemetry-subtitle strong { color: var(--text); }
+
+    .badge-grid {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 10px;
+      font-weight: 800;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .badge-critical {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1.5px solid rgba(239, 68, 68, 0.25);
+      color: var(--red);
+    }
+
+    .badge-success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1.5px solid rgba(34, 197, 94, 0.25);
+      color: #16a34a;
+    }
+
+    .badge-info {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1.5px solid rgba(59, 130, 246, 0.25);
+      color: #2563eb;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .metric-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+    }
+
+    .metric-box-title { font-size: 10px; font-weight: 700; color: var(--muted); }
+    .metric-box-val { font-size: 18px; font-weight: 800; margin-top: 4px; color: var(--text); }
+    .metric-box-desc { font-size: 10px; margin-top: 2px; }
+
+    .metric-box.red .metric-box-val { color: var(--red); }
+    .metric-box.green .metric-box-val { color: #16a34a; }
+    .metric-box.green .metric-box-desc { color: #16a34a; }
+    .metric-box.muted .metric-box-desc { color: var(--muted); }
+
+    /* Comparison Table Section */
+    .table-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    .table-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .table-main-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .compare-table th {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .compare-table td {
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .compare-table tr:hover td {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    .compare-table tr.active td {
+      background: rgba(79, 70, 229, 0.03);
+    }
+
+    .compare-table tr.active td:first-child {
+      border-left: 4px solid var(--accent);
+    }
+
+    .route-type-cell { font-weight: 700; }
+    .route-type-cell.red { color: var(--red); }
+    .route-type-cell.green { color: #16a34a; }
+    .route-type-cell.cyan { color: #2563eb; }
+
+    .path-cell { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+    .duration-cell { font-weight: 700; }
+    .duration-cell.green { color: #16a34a; }
+
+    .savings-cell { font-weight: 700; color: #16a34a; }
+
+    /* Action buttons in table */
+    .btn-table-action {
+      background: var(--accent);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+      white-space: nowrap;
+    }
+
+    .btn-table-action:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);
+    }
+
+    .btn-table-action:active {
+      transform: translateY(0);
+    }
+
+    .btn-table-action:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .btn-table-outline {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: not-allowed;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 14px 24px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+      z-index: 1002;
+      opacity: 0;
+      transition: all 0.3s ease;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── INCIDENT MODAL ── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(8px);
+      z-index: 1001;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      width: 480px;
+      max-width: 94vw;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .modal-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+
+    .modal-field {
+      margin-bottom: 18px;
+    }
+
+    .modal-field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .modal-field input,
+    .modal-field select,
+    .modal-field textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border-light);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: none;
+    }
+
+    .modal-field input:focus,
+    .modal-field select:focus,
+    .modal-field textarea:focus { border-color: var(--accent); }
+
+    .modal-field select option { background: var(--surface); }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      height: 44px;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .modal-btn.primary {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .modal-btn.primary:hover { opacity: 0.9; }
+
+    .modal-btn.cancel {
+      background: var(--surface);
+      border: 1px solid var(--border-light);
+      color: var(--muted);
+    }
+
+    .modal-btn.cancel:hover { color: var(--text); }
+
+    .recipient-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .recipient-badge.police { background: rgba(59, 130, 246, 0.08); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.2); }
+    .recipient-badge.traffic { background: rgba(245, 158, 11, 0.08); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); }
+
+    /* Leaflet overrides for light theme */
+    .leaflet-container {
+      background: #f1f5f9 !important;
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--surface) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--text) !important;
+      border-radius: 8px !important;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06) !important;
+    }
+
+    .leaflet-popup-tip { background: var(--surface) !important; }
+
+    .leaflet-popup-content {
+      color: var(--text) !important;
+      font-family: 'Outfit', sans-serif !important;
+    }
+
+    .leaflet-bar a {
+      background: var(--surface) !important;
+      border-color: var(--border-light) !important;
+      color: var(--text) !important;
+    }
+
+    .leaflet-bar a:hover { background: var(--surface2) !important; }
+
+    /* Wari Position Live Marker (Zoomed Out vs Zoomed In) */
+    .wari-live-dot-zoomed-out {
+      width: 16px;
+      height: 16px;
+      background-color: #ff6b00;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 12px #ff6b00, 0 0 24px #ff6b00;
+      animation: pulse-orange-dot 1.2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-orange-dot {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 10px #ff6b00; }
+      50% { transform: scale(1.45); opacity: 0.7; box-shadow: 0 0 25px #ff6b00; }
+    }
+
+    .wari-live-dot-zoomed-in {
+      width: 52px;
+      height: 52px;
+      background: rgba(255, 107, 0, 0.35);
+      border: 2.5px solid rgba(255, 107, 0, 0.85);
+      border-radius: 50%;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 0 35px 12px rgba(255, 107, 0, 0.65), inset 0 0 18px rgba(255, 107, 0, 0.5);
+      animation: blur-orange-circle 2s infinite ease-in-out;
+    }
+
+    @keyframes blur-orange-circle {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 30px 10px rgba(255, 107, 0, 0.6); }
+      50% { transform: scale(1.18); box-shadow: 0 0 55px 22px rgba(255, 107, 0, 0.85); }
+    }
+
+    /* Live Animated Traffic Flow Lines with Dynamic Traffic Level Colors */
+    .traffic-flow-heavy {
+      stroke-dasharray: 8, 12;
+      animation: dash-traffic-move 0.8s linear infinite !important;
+    }
+
+    .traffic-flow-moderate {
+      stroke-dasharray: 10, 10;
+      animation: dash-traffic-move 1.6s linear infinite !important;
+    }
+
+    .traffic-flow-clear {
+      stroke-dasharray: 14, 8;
+      animation: dash-traffic-move 2.5s linear infinite !important;
+    }
+
+    @keyframes dash-traffic-move {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: -20; }
+    }
+
+    /* Anomaly Dispatch & Blockade Action Button inside Leaflet Popups */
+    .btn-blockade-alert {
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .btn-blockade-alert:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.5);
+    }
+
+    .btn-blockade-alert:active {
+      transform: translateY(0);
+    }
+
+    .btn-blockade-alert.blocked-active {
+      background: #0f172a !important;
+      color: #38bdf8 !important;
+      box-shadow: none !important;
+      cursor: default;
+    }
+
+    /* Live Camera Feed Grid Aesthetics (Light Glassmorphic Theme) */
+    .cam-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .cam-card {
+      position: relative;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .cam-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(79, 70, 229, 0.12);
+    }
+
+    .cam-viewport {
+      position: relative;
+      width: 100%;
+      height: 140px;
+      background: #0f172a;
+      overflow: hidden;
+    }
+
+    .cam-viewport img, .cam-viewport video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.92;
+      transition: transform 0.3s ease;
+    }
+
+    .cam-card:hover .cam-viewport img, .cam-card:hover .cam-viewport video {
+      transform: scale(1.05);
+    }
+
+    .cam-overlay-top {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 2;
+    }
+
+    .cam-badge-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(220, 38, 38, 0.9);
+      color: #ffffff;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .cam-live-dot {
+      width: 6px;
+      height: 6px;
+      background: #ffffff;
+      border-radius: 50%;
+      animation: blink-rec 1s infinite;
+    }
+
+    @keyframes blink-rec {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .cam-rec-time {
+      font-size: 10px;
+      font-weight: 700;
+      color: #ffffff;
+      background: rgba(15, 23, 42, 0.75);
+      padding: 2px 6px;
+      border-radius: 4px;
+      backdrop-filter: blur(4px);
+    }
+
+    .cam-info-footer {
+      padding: 10px 12px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+    }
+
+    .cam-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .cam-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Pandharpur Custom Nav Icon Radar Target Marker Styles */
+    .pandharpur-custom-icon-wrap {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    .pandharpur-dest-wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .pandharpur-pulse-ring {
+      position: absolute;
+      top: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      background: rgba(249, 115, 22, 0.35);
+      border: 2px solid #f97316;
+      animation: pandharpur-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      z-index: 1;
+    }
+
+    @keyframes pandharpur-ping {
+      75%, 100% {
+        transform: translateX(-50%) scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    .pandharpur-icon-box {
+      position: relative;
+      width: 54px;
+      height: 54px;
+      background: #ffffff;
+      border: 3px solid #f97316;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(249, 115, 22, 0.6), 0 0 14px rgba(0,0,0,0.3);
+      z-index: 2;
+    }
+
+    .pandharpur-icon-box img {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .pandharpur-label-pill {
+      margin-top: 4px;
+      background: #0f172a;
+      color: #ff6b00;
+      font-family: 'Outfit', sans-serif;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      border: 1px solid #f97316;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      z-index: 3;
+    }
+
+    /* Authorization Matrix Table Bottleneck Styles */
+    .bottleneck-box {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: rgba(248, 250, 252, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .bottleneck-title {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .chokepoint-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      padding: 3px 0;
+    }
+
+    .chokepoint-action {
+      font-size: 10px;
+      color: #64748b;
+      margin-top: 1px;
+      padding-left: 8px;
+      border-left: 2px solid var(--border-light);
+    }
+
+    .tag-heavy { color: #dc2626; font-weight: 800; }
+    .tag-moderate { color: #d97706; font-weight: 800; }
+    .tag-clear { color: #16a34a; font-weight: 800; }
+  </style>
+  <link rel="stylesheet" crossorigin href="/assets/leaflet-CbImCKum.css">
+</head>
+<body>
+
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="./index.html" class="sidebar-logo">
+        Sarathi Grid<span>.</span>
+      </a>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="nav-item active" onclick="activateNav(this); mapObj && mapObj.flyTo([18.5204, 73.8567], 10, {duration: 1.5})">
+        <span>Command Center</span>
+      </a>
+      <a class="nav-item" href="pandharpur-terminal.html">
+        <span>Pandharpur Terminal</span>
+      </a>
+      <a class="nav-item" href="locator-map.html" style="display:flex;align-items:center;gap:8px;">
+        <span>Pilgrim Locator</span>
+        <span style="font-size:9px;background:rgba(16,185,129,0.12);color:#10b981;padding:1px 6px;border-radius:10px;margin-left:auto;font-family:monospace;letter-spacing:.05em;">LIVE</span>
+      </a>
+      <a class="nav-item" href="ambulance-reroute.html" style="border-top:1px solid rgba(239,68,68,0.2);margin-top:8px;padding-top:14px;color:#ef4444;display:flex;align-items:center;gap:8px;">
+        <span>Ambulance Rerouting</span>
+      </a>
+    </nav>
+
+    <div class="role-status-container">
+      <div class="role-card">
+        <div class="role-card-title">OPERATING ROLE</div>
+        <div class="role-card-val">Master Coordinator</div>
+      </div>
+
+      <div class="status-card">
+        <span>STATUS:</span>
+        <strong id="systemStatusText">NOMINAL</strong>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-switch" onclick="logout()">Switch Role</button>
+      <div class="active-agents">
+        0/9 agents active
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── MAIN WORKSPACE ── -->
+  <main class="workspace">
+
+    <!-- ── HEADER ── -->
+    <header class="header">
+      <div class="header-left">
+        <span class="header-title">COMMAND CENTER</span>
+        <span class="header-sep">|</span>
+        <span class="header-sub">Wari Route Live Telemetry</span>
+      </div>
+
+      <div class="header-right">
+        <!-- Route Selector Dropdown -->
+        <select class="route-select" id="wariSelect" onchange="onWariChange()">
+          <option value="all">All Routes Overview</option>
+          <option value="dnyaneshwar">Sant Dnyaneshwar Maharaj Palkhi (Alandi to Pandharpur)</option>
+          <option value="tukaram">Sant Tukaram Maharaj Palkhi (Dehu to Pandharpur)</option>
+          <option value="eknath">Sant Eknath Maharaj Palkhi (Paithan to Pandharpur)</option>
+          <option value="gajanan">Sant Gajanan Maharaj Palkhi (Shegaon to Pandharpur)</option>
+          <option value="muktabai">Sant Muktabai Palkhi (Muktainagar to Pandharpur)</option>
+          <option value="sopandev">Sant Sopandev Palkhi (Saswad to Pandharpur)</option>
+        </select>
+
+        <button class="btn-white" onclick="openFunnel()">Multi-Agent Execution Funnel</button>
+        <button class="btn-outline" onclick="syncTelemetry()">Sync Telemetry</button>
+        <button class="btn-logout" onclick="logoutUser()" style="background:#ef4444; color:#ffffff; border:none; padding:7px 16px; border-radius:8px; font-weight:700; cursor:pointer; font-size:13px; margin-left:8px; font-family:'Outfit',sans-serif; transition: background 0.15s ease;">Logout</button>
+      </div>
+    </header>
+
+    <!-- ── MAP CONTAINER ── -->
+    <div class="map-section">
+      <div id="map"></div>
+
+      <!-- Agent Pathfinding Status Overlay (Top Left) -->
+      <div class="map-info-overlay" id="agentPathCard">
+        <div class="overlay-title-row">
+          <span class="overlay-title">AGENT 2 OPTIMIZED PATHFINDING</span>
+          <span class="overlay-subtitle" id="widgetBlock">Block #189873</span>
+        </div>
+
+        <div class="overlay-subtitle" style="margin-bottom: 6px;">
+          TX HASH: <span style="color: #ffffff;" id="widgetHash">0x7f23cdd94d87ac2b6ef9012a9ef4</span>
+        </div>
+
+        <div class="overlay-divider"></div>
+
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div class="overlay-detail">
+            <span>SELECTED CONVOY: </span>
+            <strong id="infoConvoyName">Sant Dnyaneshwar Maharaj Palkhi</strong>
+          </div>
+          <div class="overlay-detail">
+            <span>START LOCATION: </span>
+            <strong id="infoStart">Alandi (Pune)</strong>
+          </div>
+          <div class="overlay-detail">
+            <span>DESTINATION: </span>
+            <strong id="infoDest">Pandharpur</strong>
+          </div>
+          <div class="overlay-detail">
+            <span>TOTAL DISTANCE: </span>
+            <strong id="infoDistance">228 km</strong>
+          </div>
+          <div class="overlay-detail">
+            <span>ACTIVE PATHWAY: </span>
+            <strong id="infoPathway">Alandi ➔ Pune ➔ Saswad ➔ Pandharpur</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating Convoy Tracker Widget (Bottom Right) -->
+      <div class="convoy-widget">
+        <div class="convoy-header">
+          <div>
+            <h3 style="font-size: 15px; font-weight: 700; color: #fff; margin: 0;">Convoy Tracker</h3>
+            <span style="font-size: 9px; font-weight: 600; text-transform: uppercase; color: #a78bfa; letter-spacing: 0.5px;">Sarathi-Grid Live</span>
+          </div>
+          <div class="convoy-badge">
+            <span class="live-dot"></span>
+            <span style="font-size: 9px; font-weight: 700; color: var(--green); text-transform: uppercase;">Connected</span>
+          </div>
+        </div>
+
+        <div style="padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.07); border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; gap: 8px;">
+          <div class="telemetry-row">
+            <span>Distance Covered</span>
+            <strong id="widgetDistance">18.4 km</strong>
+          </div>
+          <div class="telemetry-row">
+            <span>Remaining</span>
+            <strong id="widgetRemaining">12.6 km</strong>
+          </div>
+        </div>
+
+        <div class="timer-container">
+          <div class="timer-label">ETA Threshold Limit</div>
+          <div class="timer-bar" id="widgetCountdown">12h - 54m - 47s</div>
+        </div>
+
+        <div class="coordinates-footer">
+          <span id="widgetLat">LAT: 18.52040</span>
+          <span id="widgetLng">LNG: 73.85670</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LOWER CONTROLS & COMPARE MATRIX ── -->
+    <div class="dashboard-content">
+
+      <!-- Map Filter Category Legend -->
+      <div class="category-section">
+        <div class="category-title">Show on Map (Category Filters)</div>
+        <div class="cat-chips">
+          <button class="cat-chip active" data-cat="all" onclick="filterCat('all')">All Resources</button>
+          <button class="cat-chip" data-cat="ambulance" onclick="filterCat('ambulance')">Ambulances</button>
+          <button class="cat-chip" data-cat="doc" onclick="filterCat('doc')">Medical Posts</button>
+          <button class="cat-chip" data-cat="police" onclick="filterCat('police')">Police Posts</button>
+          <button class="cat-chip" data-cat="water" onclick="filterCat('water')">Water Points</button>
+          <button class="cat-chip" data-cat="toilet" onclick="filterCat('toilet')">Toilets</button>
+          <button class="cat-chip" data-cat="halt" onclick="filterCat('halt')">Mukkam Halts</button>
+          <button class="cat-chip" data-cat="charanseva" onclick="filterCat('charanseva')">Charanseva</button>
+          <button class="cat-chip" data-cat="hirkani" onclick="filterCat('hirkani')">Hirkani</button>
+        </div>
+      </div>
+
+      <!-- Convoy Telemetry Stats Card -->
+      <div class="telemetry-card">
+        <div class="telemetry-header-row">
+          <div>
+            <div class="telemetry-card-title">ACTIVE CONVOY ROUTE TELEMETRY</div>
+            <h2 class="telemetry-main-title" id="telConvoyName">
+              Sri Sant Dnyaneshwar Convoy <span id="telConvoyId">(DNY-2026)</span>
+            </h2>
+            <div class="telemetry-subtitle">
+              ORIGIN: <strong>Alandi</strong> ➔ DESTINATION: <strong>Pandharpur</strong>
+            </div>
+          </div>
+
+          <div class="badge-grid">
+            <span class="badge badge-critical" id="telStatusBadge">[DISRUPTED CHOKEPOINT]</span>
+            <span class="badge badge-info" id="telChainStatus">[MUTABLE AGENT COMPLIANCE]</span>
+          </div>
+        </div>
+
+        <!-- Live Camera Feeds Grid (Using Real MP4 Video Feeds from cam folder) -->
+        <div class="cam-grid">
+          <div class="cam-card">
+            <div class="cam-viewport">
+              <video src="/assets/cam1-BZPuIxHM.mp4" autoplay loop muted playsinline></video>
+              <div class="cam-overlay-top">
+                <span class="cam-badge-live">
+                  <span class="cam-live-dot"></span> LIVE CAM 01
+                </span>
+                <span class="cam-rec-time">HD 1080P | 24 FPS</span>
+              </div>
+            </div>
+            <div class="cam-info-footer">
+              <div class="cam-title" id="camTitle1">SECTOR A - ALANDI STARTING NODE</div>
+              <div class="cam-subtitle" id="camSub1">Alandi Temple Entry Gate</div>
+            </div>
+          </div>
+
+          <div class="cam-card">
+            <div class="cam-viewport">
+              <video src="/assets/cam2-GV_R0KN4.mp4" autoplay loop muted playsinline></video>
+              <div class="cam-overlay-top">
+                <span class="cam-badge-live">
+                  <span class="cam-live-dot"></span> LIVE CAM 02
+                </span>
+                <span class="cam-rec-time">HD 1080P | 24 FPS</span>
+              </div>
+            </div>
+            <div class="cam-info-footer">
+              <div class="cam-title" id="camTitle2">SECTOR B - PUNE SWARGATE HUB</div>
+              <div class="cam-subtitle" id="camSub2">Swargate Chowk Live Feed</div>
+            </div>
+          </div>
+
+          <div class="cam-card">
+            <div class="cam-viewport">
+              <video src="/assets/cam3-JqjHQidf.mp4" autoplay loop muted playsinline></video>
+              <div class="cam-overlay-top">
+                <span class="cam-badge-live">
+                  <span class="cam-live-dot"></span> LIVE CAM 03
+                </span>
+                <span class="cam-rec-time">HD 1080P | 24 FPS</span>
+              </div>
+            </div>
+            <div class="cam-info-footer">
+              <div class="cam-title" id="camTitle3">SECTOR C - HADAPSAR DIVERSION</div>
+              <div class="cam-subtitle" id="camSub3">Hadapsar Gadital Junction</div>
+            </div>
+          </div>
+
+          <div class="cam-card">
+            <div class="cam-viewport">
+              <video src="/assets/cam4-CnL9-B8z.mp4" autoplay loop muted playsinline></video>
+              <div class="cam-overlay-top">
+                <span class="cam-badge-live">
+                  <span class="cam-live-dot"></span> LIVE CAM 04
+                </span>
+                <span class="cam-rec-time">HD 1080P | 24 FPS</span>
+              </div>
+            </div>
+            <div class="cam-info-footer">
+              <div class="cam-title" id="camTitle4">SECTOR D - DIVE GHAT PASS</div>
+              <div class="cam-subtitle" id="camSub4">Dive Ghat Corridor Feed</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Human-in-the-Loop Authorization Matrix Table -->
+      <div class="table-section">
+        <div class="table-section-title">HUMAN-IN-THE-LOOP AUTHORIZATION MATRIX</div>
+        <h2 class="table-main-title">Route Cost &amp; Transit Comparison — Command Approval Gate</h2>
+
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Route Option &amp; Type</th>
+              <th style="width: 35%;">Waypoints Path</th>
+              <th style="width: 12%;">Transit Duration</th>
+              <th style="width: 12%;">Risk Grade</th>
+              <th style="width: 16%;">Action</th>
+            </tr>
+          </thead>
+          <tbody id="comparisonTableBody">
+            <!-- Row 1: Normal Route -->
+            <tr class="active" id="rowNormal">
+              <td class="route-type-cell">
+                <span class="badge badge-critical" style="font-size: 11px;">Normal / Unoptimized</span>
+              </td>
+              <td class="path-cell" id="pathCellNormal">
+                <div style="font-size:13.5px; font-weight:700; margin-bottom:8px; color:#1e293b;">Alandi ➔ Pune ➔ Loni Kalbhor ➔ Saswad (Bottleneck Clog)</div>
+                <div class="bottleneck-box">
+                  <div class="bottleneck-title">ACTIVE ROAD BOTTLENECKS &amp; CHOKEPOINTS (ON WARI PATH)</div>
+                  <div class="chokepoint-item">
+                    <span>Chokepoint #1 (0.5 km): <strong>Swargate Highway Junction</strong></span>
+                    <span class="tag-heavy">HEAVY CONGESTION</span>
+                  </div>
+                  <div class="chokepoint-action">Management: Divert Feeder Traffic to Market Yard</div>
+                  
+                  <div class="chokepoint-item" style="margin-top:4px;">
+                    <span>Chokepoint #2 (1.0 km): <strong>Hadapsar Gadital Chowk</strong></span>
+                    <span class="tag-heavy">HEAVY CONGESTION</span>
+                  </div>
+                  <div class="chokepoint-action">Management: Deploy Traffic Officer &amp; Lock Feeder Lane</div>
+
+                  <div class="chokepoint-item" style="margin-top:4px;">
+                    <span>Chokepoint #3 (1.6 km): <strong>Loni Kalbhor Bypass</strong></span>
+                    <span class="tag-moderate">MODERATE CROWD</span>
+                  </div>
+                  <div class="chokepoint-action">Management: Speed Monitoring &amp; Single-Lane Access</div>
+                </div>
+              </td>
+              <td class="duration-cell">50.5h</td>
+              <td><span class="badge badge-critical">High Risk - Crowd Clog</span></td>
+              <td><button class="btn-table-outline" disabled>Active Route</button></td>
+            </tr>
+
+            <!-- Row 2: Agent Optimized Route -->
+            <tr id="rowAgentOpt">
+              <td class="route-type-cell">
+                <span class="badge badge-success" style="font-size: 11px;">Agent Optimized</span>
+                <br>
+                <code style="font-size: 10px; margin-top: 6px; display: inline-block; color: #475569; font-weight: 600;">ROUTE_CONVOY_DIVER_01</code>
+              </td>
+              <td class="path-cell" id="pathCellOpt">
+                <div style="font-size:13.5px; font-weight:700; margin-bottom:8px; color:#1e293b;">Alandi ➔ Pune ➔ Hadapsar Diversion ➔ Saswad Bypass</div>
+                <div class="bottleneck-box">
+                  <div class="bottleneck-title">OPTIMIZED CHOKEPOINT BYPASSES &amp; DIVERSION NODES</div>
+                  <div class="chokepoint-item">
+                    <span>Chokepoint #4 (2.2 km): <strong>Dive Ghat Pass Corridor</strong></span>
+                    <span class="tag-heavy">HEAVY CONGESTION</span>
+                  </div>
+                  <div class="chokepoint-action">Management: Restrict Heavy Vehicles &amp; Open Bypass</div>
+
+                  <div class="chokepoint-item" style="margin-top:4px;">
+                    <span>Chokepoint #5 (2.8 km): <strong>Saswad Tri-Junction Node</strong></span>
+                    <span class="tag-clear">CLEAR FLOW</span>
+                  </div>
+                  <div class="chokepoint-action">Management: Maintain Unobstructed Convoy Highway</div>
+                </div>
+              </td>
+              <td class="duration-cell green" id="optDurationVal">14.5h</td>
+              <td><span class="badge badge-success">Low Risk</span></td>
+              <td><button class="btn-table-action" id="btnApproveReroute" onclick="approveReroute()">Approve &amp; Execute</button></td>
+            </tr>
+
+            <!-- Row 3: Emergency Health Lane -->
+            <tr id="rowEmergency">
+              <td class="route-type-cell">
+                <span class="badge badge-info" style="font-size: 11px;">Emergency Lane</span>
+                <br>
+                <code style="font-size: 10px; margin-top: 6px; display: inline-block; color: #475569; font-weight: 600;">EMERGENCY_HEALTH_LANE</code>
+              </td>
+              <td class="path-cell" id="pathCellEmergency">
+                <div style="font-size:13.5px; font-weight:700; margin-bottom:8px; color:#1e293b;">Alandi ➔ Phaltan ➔ Special Ambulance Corridor ➔ Natepute</div>
+                <div class="bottleneck-box">
+                  <div class="bottleneck-title">EMERGENCY HEALTH CORRIDOR CHOKEPOINT MANAGEMENT</div>
+                  <div class="chokepoint-item">
+                    <span>Emergency Node: <strong>Phaltan Medical Access Point</strong></span>
+                    <span class="tag-clear">CLEAR EMERGENCY CHANNEL</span>
+                  </div>
+                  <div class="chokepoint-action">Management: 24/7 Dedicated Ambulance Priority &amp; ICU Escort</div>
+                </div>
+              </td>
+              <td class="duration-cell">6.5h</td>
+              <td><span class="badge badge-success">Low Risk</span></td>
+              <td><button class="btn-table-action" onclick="approveEmergency()">Select &amp; Execute</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Truck Dispatch & Capacity Gate (Twilio SMS Integration) -->
+        <div style="margin-top: 32px; padding: 24px; background: #ffffff; border: 1.5px solid #e2e8f0; border-radius: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div>
+              <div style="font-size: 11px; font-weight: 800; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.8px;">AI AUTOMATION &amp; HUMAN-IN-THE-LOOP APPROVAL GATE</div>
+              <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-top: 4px;">Commercial Vehicle Dispatch &amp; Twilio SMS Gate</h3>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="background: #f8fafc; border: 1.5px solid #e2e8f0; padding: 8px 16px; border-radius: 99px; font-size: 13px; font-weight: 700; color: #0f172a;">
+                WARI SECTOR CAPACITY: <span id="activeWariCapacityBadge" style="color: #16a34a; font-weight: 900;">1 / 2 TRUCKS ACTIVE</span>
+              </div>
+            </div>
+          </div>
+          <p style="font-size: 13.5px; color: #64748b; margin-bottom: 20px;">
+            <strong>AI Concurrency Rule:</strong> Maximum 2 heavy transport vehicles are permitted inside the Wari pilgrimage sector concurrently. When Command approves a vehicle below, a real-time dispatch SMS alert is triggered via Twilio to the driver (+91 9284223412).
+          </p>
+
+          <table class="compare-table" style="margin-top: 0;">
+            <thead>
+              <tr>
+                <th style="width: 20%;">Vehicle Plate &amp; Driver</th>
+                <th style="width: 25%;">Payload Category</th>
+                <th style="width: 20%;">Origin Depot</th>
+                <th style="width: 15%;">AI Security Clearance</th>
+                <th style="width: 20%;">Command Action</th>
+              </tr>
+            </thead>
+            <tbody id="truckGateTableBody">
+              <!-- Dynamically populated from Supabase & Backend -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ── INCIDENT MODAL ── -->
+  <div class="modal-backdrop" id="incidentModal" onclick="closeModal(event)">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">Report Incident</div>
+      <div class="modal-sub" id="modalSub">Fill in the details to dispatch an alert</div>
+      <div id="recipientBadge"></div>
+
+      <div class="modal-field">
+        <label>Location / Area</label>
+        <input type="text" id="incLoc" placeholder="e.g. Walchandnagar, NH-65 Km 234">
+      </div>
+      <div class="modal-field">
+        <label>Incident Type</label>
+        <select id="incType">
+          <option>Medical Emergency</option>
+          <option>Crowd Surge</option>
+          <option>Vehicle Breakdown</option>
+          <option>Traffic Blockage</option>
+          <option>Law &amp; Order</option>
+          <option>Fire / Accident</option>
+          <option>Missing Person</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Severity</label>
+        <select id="incSeverity">
+          <option value="critical">Critical — Immediate Response</option>
+          <option value="high">High — Urgent</option>
+          <option value="medium" selected>Medium — Standard</option>
+          <option value="low">Low — Monitoring</option>
+        </select>
+      </div>
+      <div class="modal-field">
+        <label>Description</label>
+        <textarea id="incDesc" rows="3" placeholder="Describe the situation…"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeIncident()">Cancel</button>
+        <button class="modal-btn primary" onclick="submitIncident()">Dispatch Alert</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Agent execution Funnel Modal -->
+  <div class="modal-backdrop" id="funnelModal" onclick="closeFunnelModal(event)">
+    <div class="modal" style="width: 580px;">
+      <div class="modal-title">Multi-Agent Verification Pipeline</div>
+      <div class="modal-sub">Real-time task-level execution check across active agents</div>
+      
+      <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px;">
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 13px; color: #fff;">Agent 2: Graph Pathfinding</strong>
+            <span style="font-size: 11px; color: #22c55e; font-weight: 700;">✓ PASSED</span>
+          </div>
+          <div style="font-size: 11px; color: var(--muted);">Dijkstra graphs processed for diversion routing around crowd bottleneck coordinates.</div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 13px; color: #fff;">Agent 3: Constraint Validator</strong>
+            <span style="font-size: 11px; color: #22c55e; font-weight: 700;">✓ PASSED</span>
+          </div>
+          <div style="font-size: 11px; color: var(--muted);">Pydantic schemas verified safe water volume limits and ambulance post slots along route legs.</div>
+        </div>
+
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 13px; color: #fff;">Agent 4: Blockchain Provenance</strong>
+            <span style="font-size: 11px; color: #f59e0b; font-weight: 700;">⚠ PENDING HITL APPROVAL</span>
+          </div>
+          <div style="font-size: 11px; color: var(--muted);">Awaiting coordinator execution click to sign cryptographic route metadata onto Polygon testnet.</div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="modal-btn cancel" style="flex: 1;" onclick="closeFunnel()">Close Panel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ── SCRIPTS ── -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./assets/vendor/leaflet/leaflet.js"></script>
+  <script src="./data/wari-mukkams.js"></script>
+  <script src="./data/wari-points-dnyaneshwar-halts.js"></script>
+  <script src="./data/wari-points-tukaram-halts.js"></script>
+  <script src="./data/wari-points-tukaram.js"></script>
+  <script src="./data/wari-points-phc102.js"></script>
+  <script src="./data/wari-points-water-filling.js"></script>
+  <script src="./data/wari-points-water-solapur.js"></script>
+  <script src="./data/wari-points-hirkani.js"></script>
+  <script src="./data/wari-points-charanseva.js"></script>
+  <script src="./data/wari-points-police.js"></script>
+  <script src="./data/wari-points-satara.js"></script>
+  <script src="./data/wari-points-solapur.js"></script>
+  <script src="./data/wari-points-toilets.js"></script>
+  <script src="./data/wari-points-icu.js"></script>
+  <script src="./data/wari-points-private.js"></script>
+  <script src="./data/wari-points-dho-mo.js"></script>
+  <script src="./data/wari-points-amb-supplement.js"></script>
+  <script src="./data/wari-ambulance-contacts-2026.js"></script>
+  <script src="./data/wari-officials.js"></script>
+  <script src="./data/wari-dignitaries.js"></script>
+  <script src="./data/wari-routes-full.js"></script>
+  <script src="./data/wari-route-dnyaneshwar-pune.js"></script>
+  <script src="./data/wari-data.js"></script>
+
+  <script>
+    // Global Error Logger for UI feedback
+    window.onerror = function (message, source, lineno, colno, error) {
+      const errDiv = document.createElement('div');
+      errDiv.style.position = 'fixed';
+      errDiv.style.top = '0';
+      errDiv.style.left = '0';
+      errDiv.style.width = '100%';
+      errDiv.style.background = '#fef2f2';
+      errDiv.style.color = '#991b1b';
+      errDiv.style.borderBottom = '3px solid #f87171';
+      errDiv.style.padding = '16px';
+      errDiv.style.zIndex = '99999';
+      errDiv.style.fontSize = '14px';
+      errDiv.style.fontFamily = 'monospace';
+      errDiv.style.fontWeight = 'bold';
+      errDiv.innerHTML = '🚨 JAVASCRIPT RUNTIME ERROR: ' + message + ' <br>Source: ' + source + ' <br>Line: ' + lineno + ' : ' + colno;
+      document.body.appendChild(errDiv);
+      return false;
+    };
+
+    // ── Auth guard ──
+    (function () {
+      var role = sessionStorage.getItem('wari_role');
+      if (!role) { window.location.replace('./login.html'); return; }
+      if (role !== 'admin') { window.location.replace('./locator-map.html'); return; }
+    })();
+
+    function logout() {
+      sessionStorage.clear();
+      window.location.replace('./login.html');
+    }
+
+    // ── Toast ──
+    function showToast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(function () { t.classList.remove('show'); }, 3500);
+    }
+
+    // ── Map setup ──
+    var mapObj = null;
+    var allMarkers = [];
+    var routeLayers = [];
+    var activeRouteLine = null;
+
+    // Waypoints for each route to query OSRM road pathfinder
+    var routeWaypoints = {
+      dnyaneshwar: [
+        [18.5204, 73.8567], // Pune (Live position start)
+        [18.3410, 74.0360], // Saswad
+        [18.2770, 74.1630], // Jejuri
+        [18.1030, 74.2140], // Nira
+        [18.0417, 74.1861], // Lonand
+        [17.9911, 74.4317], // Phaltan
+        [17.9016, 74.7486], // Natepute
+        [17.7963, 75.0541], // Velapur
+        [17.6806, 75.3299]  // Pandharpur
+      ],
+      tukaram: [
+        [18.4890, 74.0275], // Loni Kalbhor (Live position start)
+        [18.1515, 74.5769], // Baramati
+        [18.1180, 75.0260], // Indapur
+        [17.6906, 75.2770], // Wakhari
+        [17.6786, 75.3299]  // Pandharpur
+      ],
+      eknath: [
+        [19.1678, 75.1812], // Pathardi (Live position start)
+        [18.6834, 75.3117], // Jamkhed
+        [18.0877, 75.4322], // Kurduvadi
+        [17.6786, 75.3299]  // Pandharpur
+      ],
+      gajanan: [
+        [19.7214, 77.1492], // Hingoli (Live position start)
+        [19.1383, 77.3210], // Nanded
+        [18.4088, 76.5604], // Latur
+        [17.6599, 75.9064], // Solapur
+        [17.6786, 75.3299]  // Pandharpur
+      ],
+      muktabai: [
+        [19.8762, 75.3433], // Aurangabad (Live position start)
+        [18.9892, 75.7601], // Beed
+        [17.6599, 75.9064], // Solapur
+        [17.6786, 75.3299]  // Pandharpur
+      ],
+      sopandev: [
+        [18.3410, 74.0360], // Saswad (Live position start)
+        [18.2770, 74.1630], // Jejuri
+        [18.1030, 74.2140], // Nira
+        [17.9911, 74.4317], // Phaltan
+        [17.7963, 75.0541], // Velapur
+        [17.6786, 75.3299]  // Pandharpur
+      ]
+    };
+
+
+    var activeCat = 'all';
+    var activeWari = 'all';
+    var wariLiveMarkers = [];
+    var routePolylines = {};
+
+    function initMap() {
+      mapObj = L.map('map', {
+        center: [18.85, 75.35],
+        zoom: 7,
+        zoomControl: true,
+        maxZoom: 20
+      });
+
+      // OpenStreetMap standard tile layer for absolute street-level detail
+      var streetTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 20,
+        maxNativeZoom: 19
+      });
+
+      // Esri World Imagery Satellite tiles for high-detail visual tracking
+      var satelliteTiles = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 20,
+        maxNativeZoom: 19
+      });
+
+      // Add detailed street tiles by default
+      streetTiles.addTo(mapObj);
+
+      // Create base maps toggle control for base maps switcher (Detailed Street vs Satellite)
+      var baseMaps = {
+        "Detailed Street Map": streetTiles,
+        "Satellite Imagery": satelliteTiles
+      };
+      
+      // Add leaflet layer control to bottom left
+      L.control.layers(baseMaps, null, { position: 'bottomleft' }).addTo(mapObj);
+
+      loadAllRoutes();
+      initWariLiveMarkers();
+      loadMarkers();
+      initPandharpurDestinationMarker();
+
+      // When user manually drags or scrolls the map, stop auto-panning
+      mapObj.on('dragstart', function() {
+        _mapUserMoved = true;
+      });
+    }
+
+    var pandharpurMarker = null;
+
+    function initPandharpurDestinationMarker() {
+      if (pandharpurMarker && mapObj) {
+        mapObj.removeLayer(pandharpurMarker);
+      }
+
+      var customHtml = '<div class="pandharpur-dest-wrapper" title="Pandharpur Terminal (Final Destination)">'
+        + '<div class="pandharpur-pulse-ring"></div>'
+        + '<div class="pandharpur-icon-box">'
+        + '<img src="./assets/img/nav.png" onerror="this.onerror=null; this.src=\'./nav.png\';" alt="Pandharpur Terminal">'
+        + '</div>'
+        + '<div class="pandharpur-label-pill">PANDHARPUR</div>'
+        + '</div>';
+
+      var navDivIcon = L.divIcon({
+        html: customHtml,
+        className: 'pandharpur-custom-icon-wrap',
+        iconSize: [80, 80],
+        iconAnchor: [40, 40],
+        popupAnchor: [0, -40]
+      });
+
+      pandharpurMarker = L.marker([17.6786, 75.3299], {
+        icon: navDivIcon,
+        zIndexOffset: 10000
+      }).addTo(mapObj);
+
+      pandharpurMarker.bindPopup('<div style="font-family:Outfit,sans-serif;padding:6px;min-width:210px;"><strong style="font-size:14px;color:#f97316;">Pandharpur Terminal (Final Destination)</strong><br><span style="font-size:11px;color:#64748b;">Vitthal Temple Pilgrimage Confluence Hub</span></div>');
+    }
+
+    // Distinct colors for each of the 6 Palkhi routes
+    var routeColors = {
+      dnyaneshwar: '#8b5cf6', // Purple
+      tukaram: '#10b981',    // Green
+      eknath: '#d946ef',     // Magenta
+      gajanan: '#eab308',    // Amber
+      muktabai: '#06b6d4',   // Cyan
+      sopandev: '#f97316'    // Orange
+    };
+
+    function loadAllRoutes() {
+      // Draw all 6 routes cleanly on map startup (no red lines)
+      Object.keys(routeWaypoints).forEach(function(key) {
+        var waypoints = routeWaypoints[key];
+        var line = L.polyline(waypoints, {
+          color: routeColors[key] || '#4f46e5',
+          weight: 4,
+          opacity: 0.85
+        }).addTo(mapObj);
+        
+        routePolylines[key] = line;
+        
+        // Fetch OSRM road geometry asynchronously to trace actual highways
+        var osrmCoords = waypoints.map(w => w[1] + ',' + w[0]).join(';');
+        var url = 'https://router.project-osrm.org/route/v1/driving/' + osrmCoords + '?overview=full&geometries=geojson';
+
+        fetch(url)
+          .then(r => r.json())
+          .then(data => {
+            if (data.routes && data.routes.length > 0) {
+              var routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+              if (routePolylines[key]) {
+                mapObj.removeLayer(routePolylines[key]);
+              }
+              var exactLine = L.polyline(routeCoords, {
+                color: routeColors[key] || '#4f46e5',
+                weight: 4,
+                opacity: 0.9
+              });
+              if (activeWari === 'all' || activeWari === key) {
+                exactLine.addTo(mapObj);
+              }
+              routePolylines[key] = exactLine;
+            }
+          })
+          .catch(e => {
+            console.warn("OSRM load failed for " + key, e);
+          });
+      });
+    }
+
+    var trafficCorridors = {
+      dnyaneshwar: {
+        livePos: [18.5018, 73.8576], // Swargate Live Pos (strictly on route)
+        feeders: [
+          { start: [18.5120, 73.9350], end: [18.5015, 73.9272], level: 'heavy', speed: '4 km/h' }, // Solapur Bypass to Hadapsar Chowk (1km Ahead on Route)
+          { start: [18.4750, 73.9550], end: [18.4850, 73.9450], level: 'moderate', speed: '12 km/h' } // Mantarwadi to Saswad Naka (Ahead on Route)
+        ],
+        merges: [
+          { id: 'dny_1', lat: 18.5015, lng: 73.9272, name: 'Hadapsar Gadital Chowk (1km Ahead on Route)', officer: 'ACP Ramesh Shinde (Traffic Div 1)', phone: '+91 98220 11001', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' },
+          { id: 'dny_2', lat: 18.4850, lng: 73.9450, name: 'Saswad Road Naka Junction (Ahead on Route)', officer: 'Inspector Suresh Kadam (Traffic Div 2)', phone: '+91 98220 11002', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' }
+        ]
+      },
+      tukaram: {
+        livePos: [18.4890, 74.0275], // Loni Kalbhor (strictly on route)
+        feeders: [
+          { start: [18.4900, 74.2000], end: [18.4770, 74.2620], level: 'heavy', speed: '5 km/h' },
+          { start: [18.4600, 74.3200], end: [18.4490, 74.3400], level: 'clear', speed: '28 km/h' }
+        ],
+        merges: [
+          { id: 'tuk_1', lat: 18.4770, lng: 74.2620, name: 'Yawat Highway Naka Chowk (1km Ahead on Route)', officer: 'Inspector Anand Deshmukh (Traffic East)', phone: '+91 98220 22001', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' },
+          { id: 'tuk_2', lat: 18.4490, lng: 74.3400, name: 'Kedgaon Station Junction (Ahead on Route)', officer: 'SI Prakash Pawar (Traffic East)', phone: '+91 98220 22002', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' }
+        ]
+      },
+      eknath: {
+        livePos: [19.1678, 75.1812], // Pathardi (strictly on route)
+        feeders: [
+          { start: [19.1550, 75.2100], end: [19.1450, 75.2250], level: 'heavy', speed: '3 km/h' },
+          { start: [18.7000, 75.3000], end: [18.6834, 75.3117], level: 'moderate', speed: '15 km/h' }
+        ],
+        merges: [
+          { id: 'ekn_1', lat: 19.1450, lng: 75.2250, name: 'Tisgaon Highway Chowk (1km Ahead on Route)', officer: 'Inspector Dnyaneshwar Shinde (Ahilyanagar Traffic)', phone: '+91 98220 33001', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' },
+          { id: 'ekn_2', lat: 18.6834, lng: 75.3117, name: 'Jamkhed Border Junction (Ahead on Route)', officer: 'SI Santosh Gaikwad (Ahilyanagar Traffic)', phone: '+91 98220 33002', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' }
+        ]
+      },
+      gajanan: {
+        livePos: [19.7214, 77.1492], // Hingoli (strictly on route)
+        feeders: [
+          { start: [19.5600, 77.0300], end: [19.5420, 77.0450], level: 'heavy', speed: '6 km/h' },
+          { start: [19.1800, 77.2800], end: [19.1600, 77.3000], level: 'clear', speed: '30 km/h' }
+        ],
+        merges: [
+          { id: 'gaj_1', lat: 19.5420, lng: 77.0450, name: 'Aundha Nagnath Cross Chowk (1km Ahead on Route)', officer: 'Inspector Gajanan Jadhav (Hingoli Traffic)', phone: '+91 98220 44001', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' },
+          { id: 'gaj_2', lat: 19.1600, lng: 77.3000, name: 'Nanded Highway Bypass Chowk (Ahead on Route)', officer: 'SI Mahadev Mule (Hingoli Traffic)', phone: '+91 98220 44002', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' }
+        ]
+      },
+      muktabai: {
+        livePos: [19.8762, 75.3433], // CSN (strictly on route)
+        feeders: [
+          { start: [19.8500, 75.3500], end: [19.8350, 75.3620], level: 'heavy', speed: '2 km/h' },
+          { start: [19.8200, 75.3650], end: [19.8100, 75.3750], level: 'moderate', speed: '11 km/h' }
+        ],
+        merges: [
+          { id: 'muk_1', lat: 19.8350, lng: 75.3620, name: 'Beed Bypass Highway Chowk (1km Ahead on Route)', officer: 'ACP Rameshwar Bhosale (CSN Traffic)', phone: '+91 98220 55001', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' },
+          { id: 'muk_2', lat: 19.8100, lng: 75.3750, name: 'Dhule-Solapur Junction Chowk (Ahead on Route)', officer: 'SI Balasaheb More (CSN Traffic)', phone: '+91 98220 55002', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' }
+        ]
+      },
+      sopandev: {
+        livePos: [18.3410, 74.0360], // Saswad (strictly on route)
+        feeders: [
+          { start: [18.3350, 74.0450], end: [18.3280, 74.0500], level: 'heavy', speed: '4 km/h' },
+          { start: [18.3200, 74.0700], end: [18.3100, 74.0800], level: 'clear', speed: '25 km/h' }
+        ],
+        merges: [
+          { id: 'sop_1', lat: 18.3280, lng: 74.0500, name: 'Jejuri Road Naka Chowk (1km Ahead on Route)', officer: 'Inspector Sunil Jagtap (Saswad Traffic)', phone: '+91 98220 66001', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' },
+          { id: 'sop_2', lat: 18.3100, lng: 74.0800, name: 'Sakurdi Tiraha Junction (Ahead on Route)', officer: 'SI Eknath Kamble (Saswad Traffic)', phone: '+91 98220 66002', status: 'UPCOMING CHOKEPOINT / TRAFFIC DIVERTED' }
+        ]
+      }
+    };
+
+    var activeTrafficLayers = [];
+    var activeAheadPolyline = null;
+
+    function clearTrafficCorridors() {
+      activeTrafficLayers.forEach(function(l) { mapObj.removeLayer(l); });
+      activeTrafficLayers = [];
+      if (activeAheadPolyline) {
+        mapObj.removeLayer(activeAheadPolyline);
+        activeAheadPolyline = null;
+      }
+    }
+
+    function getPolylineDistanceKm(lat1, lon1, lat2, lon2) {
+      var R = 6371; // Earth radius in km
+      var dLat = (lat2 - lat1) * Math.PI / 180;
+      var dLon = (lon2 - lon1) * Math.PI / 180;
+      var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    function dispatchBlockadeAlert(id, name, officer, phone) {
+      var payload = {
+        chokepointId: id,
+        chokepointName: name,
+        officer: officer,
+        phone: phone,
+        status: 'EMERGENCY_BLOCKADE_INITIATED',
+        timestamp: new Date().toISOString()
+      };
+
+      // 1. Dispatch alert payload to Backend REST API
+      fetch('/api/traffic/blockade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(data => console.log("Backend Alert Ack:", data))
+      .catch(err => console.warn("Backend API dispatch logged (offline resilience):", err));
+
+      // Persist blockade alert state in local storage
+      var saved = JSON.parse(localStorage.getItem('wari_blockade_alerts') || '[]');
+      saved.push(payload);
+      localStorage.setItem('wari_blockade_alerts', JSON.stringify(saved));
+
+      // 2. UI Toast Notification & Popup State Update
+      showToast('ANOMALY ALERT SENT to ' + officer + ' (' + phone + '): ' + name + ' is now LOCKED DOWN!');
+
+      var btn = document.getElementById('btn-block-' + id);
+      if (btn) {
+        btn.innerHTML = 'BLOCKADE ACTIVE - ALERT SENT';
+        btn.classList.add('blocked-active');
+        btn.disabled = true;
+      }
+
+      var statusSpan = document.getElementById('status-' + id);
+      if (statusSpan) {
+        statusSpan.textContent = 'EMERGENCY BLOCKADE ACTIVE - ALERT SENT';
+        statusSpan.style.color = '#dc2626';
+      }
+    }
+
+    // Track whether the user has moved the map manually after a programmatic flyTo
+    var _mapUserMoved = false;
+
+    function drawDetailedWariRoute(routeKey) {
+      clearTrafficCorridors();
+      _mapUserMoved = false; // Reset on each new route selection
+
+      if (routeKey === 'all') {
+        Object.keys(routePolylines).forEach(function(k) {
+          if (routePolylines[k]) routePolylines[k].addTo(mapObj);
+        });
+        mapObj.flyTo([18.85, 75.35], 7, { duration: 1.5 });
+        return;
+      }
+
+      // Hide all full overview routes when a specific route is selected
+      Object.keys(routePolylines).forEach(function(k) {
+        if (routePolylines[k]) {
+          mapObj.removeLayer(routePolylines[k]);
+        }
+      });
+
+      var waypoints = routeWaypoints[routeKey];
+      var liveData = {
+        dnyaneshwar: [18.5018, 73.8576],
+        tukaram: [18.4890, 74.0275],
+        eknath: [19.1678, 75.1812],
+        gajanan: [19.7214, 77.1492],
+        muktabai: [19.8762, 75.3433],
+        sopandev: [18.3410, 74.0360]
+      };
+
+      var startPos = liveData[routeKey] || waypoints[0];
+
+      // Find closest index in waypoints
+      var closestIdx = 0;
+      var minDist = 999999;
+      for (var i = 0; i < waypoints.length; i++) {
+        var d = Math.hypot(waypoints[i][0] - startPos[0], waypoints[i][1] - startPos[1]);
+        if (d < minDist) {
+          minDist = d;
+          closestIdx = i;
+        }
+      }
+
+      // Slice waypoints so ONLY path AFTER Wari position is displayed
+      var aheadWaypoints = [startPos].concat(waypoints.slice(closestIdx + 1));
+
+      // Query OSRM for exact detailed road geometry
+      var osrmCoordsStr = aheadWaypoints.map(w => w[1] + ',' + w[0]).join(';');
+      var url = 'https://router.project-osrm.org/route/v1/driving/' + osrmCoordsStr + '?overview=full&geometries=geojson';
+
+      // Fallback initial line
+      activeAheadPolyline = L.polyline(aheadWaypoints, {
+        color: routeColors[routeKey] || '#4f46e5',
+        weight: 5,
+        opacity: 0.95
+      }).addTo(mapObj);
+
+      // Fly to live position once. After this, user can pan freely.
+      mapObj.flyTo(startPos, 14, { duration: 1.5 });
+
+      // After fly animation completes, listen for user drag/zoom so we don't re-fly
+      mapObj.once('moveend', function() {
+        mapObj.once('movestart', function(e) {
+          if (e.originalEvent) {
+            // User initiated — not a programmatic move
+            _mapUserMoved = true;
+          }
+        });
+      });
+
+      fetch(url)
+        .then(r => r.json())
+        .then(data => {
+          if (!data.routes || data.routes.length === 0) return;
+          var routeCoords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+
+          if (activeAheadPolyline) mapObj.removeLayer(activeAheadPolyline);
+          activeAheadPolyline = L.polyline(routeCoords, {
+            color: routeColors[routeKey] || '#4f46e5',
+            weight: 5,
+            opacity: 0.95
+          }).addTo(mapObj);
+
+          // 1. PIN WARI LIVE MARKER EXACTLY ON routeCoords[0] (Guarantee 100% path alignment)
+          var wariPoint = routeCoords[0];
+          wariLiveMarkers.forEach(function(wm) {
+            if (wm.palkhi === routeKey) {
+              wm.marker.setLatLng(wariPoint);
+            }
+          });
+
+          // 2. GENERATE 5 BLACK DOTS STRICTLY ON routeCoords WITHIN 3 KM AHEAD
+          var cumDist = 0;
+          var targetDists = [0.5, 1.0, 1.6, 2.2, 2.8]; // Target distances in KM ahead of Wari
+          var chowkOfficers = [
+            { officer: 'ACP Ramesh Shinde (Traffic Div 1)', phone: '+91 98220 11001' },
+            { officer: 'Inspector Suresh Kadam (Traffic Div 2)', phone: '+91 98220 11002' },
+            { officer: 'SI Rajesh Patil (Traffic Div 3)', phone: '+91 98220 11003' },
+            { officer: 'SI Santosh Gaikwad (Traffic Div 4)', phone: '+91 98220 11004' },
+            { officer: 'Inspector Anand Deshmukh (Traffic East)', phone: '+91 98220 11005' }
+          ];
+
+          var chowkIndices = [];
+          var currentTargetIdx = 0;
+
+          for (var c = 1; c < routeCoords.length; c++) {
+            var stepD = getPolylineDistanceKm(routeCoords[c-1][0], routeCoords[c-1][1], routeCoords[c][0], routeCoords[c][1]);
+            cumDist += stepD;
+            if (currentTargetIdx < targetDists.length && cumDist >= targetDists[currentTargetIdx]) {
+              chowkIndices.push({ idx: c, distKm: cumDist.toFixed(1) });
+              currentTargetIdx++;
+            }
+            if (cumDist > 3.2) break; // Strictly within 3km of Wari location
+          }
+
+          // Render Black Dots on routeCoords & Connected Side Road Traffic Lines
+          chowkIndices.forEach(function(item, i) {
+            var chowkPoint = routeCoords[item.idx];
+            var offInfo = chowkOfficers[i % chowkOfficers.length];
+            var chokepointId = routeKey + '_chowk_' + (i + 1);
+
+            // A. Place Black Dot EXACTLY on Wari Path Coordinate
+            var blackDot = L.circleMarker(chowkPoint, {
+              radius: 10,
+              fillColor: '#000000', // Black dot on path
+              color: '#ffffff',
+              weight: 3,
+              fillOpacity: 1
+            }).addTo(mapObj);
+
+            var popupContent = '<div style="font-family:Outfit,sans-serif;padding:6px;min-width:230px;color:#0f172a;">'
+              + '<b style="font-size:14px;color:#0f172a;">Chokepoint #' + (i + 1) + ' (' + item.distKm + ' km Ahead on Wari Path)</b>'
+              + '<div id="status-' + chokepointId + '" style="font-size:10px;color:#dc2626;font-weight:800;margin:4px 0;text-transform:uppercase;">STATUS: ACTIVE TRAFFIC CONTROL / DIVERTED</div>'
+              + '<div style="font-size:12px;color:#334155;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:6px;">'
+              + '<strong>Traffic Officer:</strong><br><span style="color:#0f172a;font-weight:700;">' + offInfo.officer + '</span>'
+              + '</div>'
+              + '<div style="font-size:12px;margin-top:4px;">'
+              + '<strong>Contact:</strong> <a href="tel:' + offInfo.phone + '" style="color:#4f46e5;font-weight:800;">' + offInfo.phone + '</a>'
+              + '</div>'
+              + '<button id="btn-block-' + chokepointId + '" onclick="dispatchBlockadeAlert(\'' + chokepointId + '\', \'Chokepoint #' + (i + 1) + '\', \'' + offInfo.officer + '\', \'' + offInfo.phone + '\')" class="btn-blockade-alert">'
+              + 'DISPATCH ANOMALY & BLOCK ROAD'
+              + '</button>'
+              + '</div>';
+
+            blackDot.bindPopup(popupContent);
+            activeTrafficLayers.push(blackDot);
+
+            // B. Draw Feeder Side Road starting ~500m off to side and ENDING EXACTLY AT chowkPoint
+            var prevPt = routeCoords[item.idx - 1] || chowkPoint;
+            var dx = chowkPoint[1] - prevPt[1];
+            var dy = chowkPoint[0] - prevPt[0];
+            var angle = Math.atan2(dy, dx) + (i % 2 === 0 ? 1.57 : -1.57); // Alternating perpendicular angle
+            var sideStart = [
+              chowkPoint[0] + 0.005 * Math.sin(angle),
+              chowkPoint[1] + 0.005 * Math.cos(angle)
+            ];
+
+            var trafficLevels = ['heavy', 'heavy', 'moderate', 'heavy', 'clear'];
+            var level = trafficLevels[i % trafficLevels.length];
+            var strokeColor = '#dc2626';
+            var cssClass = 'traffic-flow-heavy';
+            if (level === 'moderate') { strokeColor = '#f59e0b'; cssClass = 'traffic-flow-moderate'; }
+            if (level === 'clear') { strokeColor = '#10b981'; cssClass = 'traffic-flow-clear'; }
+
+            // Query OSRM for side road curve leading to chowkPoint on Wari path
+            var feederUrl = 'https://router.project-osrm.org/route/v1/driving/' + sideStart[1] + ',' + sideStart[0] + ';' + chowkPoint[1] + ',' + chowkPoint[0] + '?overview=full&geometries=geojson';
+
+            var line = L.polyline([sideStart, chowkPoint], {
+              color: strokeColor,
+              weight: 6,
+              opacity: 0.9,
+              dashArray: '8, 12',
+              className: cssClass
+            }).addTo(mapObj);
+            activeTrafficLayers.push(line);
+
+            fetch(feederUrl)
+              .then(res => res.json())
+              .then(fData => {
+                if (fData.routes && fData.routes.length > 0) {
+                  var fCoords = fData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                  mapObj.removeLayer(line);
+                  var exactFeeder = L.polyline(fCoords, {
+                    color: strokeColor,
+                    weight: 6,
+                    opacity: 0.95,
+                    dashArray: '8, 12',
+                    className: cssClass
+                  }).addTo(mapObj);
+                  activeTrafficLayers.push(exactFeeder);
+                }
+              })
+              .catch(err => console.warn("Feeder OSRM error", err));
+          });
+          initPandharpurDestinationMarker();
+        })
+        .catch(e => console.warn("OSRM ahead path error", e));
+    }
+
+    // Live Wari position markers with zoom-dependent rendering
+    function initWariLiveMarkers() {
+      var livePosData = [
+        { name: 'Sant Dnyaneshwar Maharaj Palkhi', palkhi: 'dnyaneshwar', lat: 18.5204, lng: 73.8567, loc: 'Pune Central' },
+        { name: 'Sant Tukaram Maharaj Palkhi', palkhi: 'tukaram', lat: 18.4890, lng: 74.0275, loc: 'Loni Kalbhor' },
+        { name: 'Sant Eknath Maharaj Palkhi', palkhi: 'eknath', lat: 19.1678, lng: 75.1812, loc: 'Pathardi' },
+        { name: 'Sant Gajanan Maharaj Palkhi', palkhi: 'gajanan', lat: 19.7214, lng: 77.1492, loc: 'Hingoli' },
+        { name: 'Sant Muktabai Palkhi', palkhi: 'muktabai', lat: 19.8762, lng: 75.3433, loc: 'Aurangabad' },
+        { name: 'Sant Sopandev Palkhi', palkhi: 'sopandev', lat: 18.3410, lng: 74.0360, loc: 'Saswad' }
+      ];
+
+      livePosData.forEach(function(p) {
+        var isZoomedIn = mapObj ? mapObj.getZoom() > 12 : false;
+        var divEl = document.createElement('div');
+        divEl.className = isZoomedIn ? 'wari-live-dot-zoomed-in' : 'wari-live-dot-zoomed-out';
+
+        var customIcon = L.divIcon({
+          html: divEl,
+          className: 'wari-custom-div-icon',
+          iconSize: isZoomedIn ? [52, 52] : [16, 16],
+          iconAnchor: isZoomedIn ? [26, 26] : [8, 8]
+        });
+
+        var m = L.marker([p.lat, p.lng], { icon: customIcon });
+        m.bindPopup('<div style="font-family:Outfit,sans-serif;padding:4px;"><strong style="color:#f97316;font-size:13px;">' + p.name + '</strong><br><span style="font-size:11px;color:#64748b;">Current Live Position: ' + p.loc + '</span></div>');
+        m.addTo(mapObj);
+        wariLiveMarkers.push({ marker: m, palkhi: p.palkhi, lat: p.lat, lng: p.lng, name: p.name });
+      });
+
+      mapObj.on('zoomend', updateWariLiveMarkerStyles);
+    }
+
+    function updateWariLiveMarkerStyles() {
+      if (!mapObj) return;
+      var isZoomedIn = mapObj.getZoom() > 12;
+      wariLiveMarkers.forEach(function(item) {
+        var divEl = document.createElement('div');
+        divEl.className = isZoomedIn ? 'wari-live-dot-zoomed-in' : 'wari-live-dot-zoomed-out';
+        var icon = L.divIcon({
+          html: divEl,
+          className: 'wari-custom-div-icon',
+          iconSize: isZoomedIn ? [52, 52] : [16, 16],
+          iconAnchor: isZoomedIn ? [26, 26] : [8, 8]
+        });
+        item.marker.setIcon(icon);
+      });
+    }
+
+    function distanceToSegment(p, a, b) {
+      var dy = b[0] - a[0];
+      var dx = b[1] - a[1];
+      if (dx === 0 && dy === 0) {
+        return Math.hypot(p[0] - a[0], p[1] - a[1]);
+      }
+      var t = ((p[0] - a[0]) * dy + (p[1] - a[1]) * dx) / (dy * dy + dx * dx);
+      t = Math.max(0, Math.min(1, t));
+      return Math.hypot(p[0] - (a[0] + t * dy), p[1] - (a[1] + t * dx));
+    }
+
+    function distanceToRoute(p, waypoints) {
+      var min = Infinity;
+      for (var i = 0; i < waypoints.length - 1; i++) {
+        var d = distanceToSegment(p, waypoints[i], waypoints[i+1]);
+        if (d < min) min = d;
+      }
+      return min;
+    }
+
+    // Load Wari survey markers with route tagging
+    function loadMarkers() {
+      var rawPts = [];
+      if (typeof WariData !== 'undefined' && typeof WariData.build === 'function') {
+        try {
+          var allDataPts = WariData.build();
+          rawPts = allDataPts.map(function(p) {
+            var category = (typeof WariData.cls === 'function') ? WariData.cls(p) : 'other';
+            if (category === 'health') {
+              category = 'doc';
+            }
+
+            // Use the point's own palkhi tag directly — WariData already classifies each
+            // point as 'dnyaneshwar', 'tukaram', or 'both'. Trust that instead of guessing.
+            var palkhi = p.palkhi || 'both';
+            var matchedRoutes;
+            if (palkhi === 'both' || palkhi === 'all') {
+              matchedRoutes = ['dnyaneshwar', 'tukaram'];
+            } else {
+              matchedRoutes = [palkhi];
+            }
+
+            return {
+              name: p.label || p.place || 'Resource Post',
+              cat: category,
+              routes: matchedRoutes,
+              lat: p.lat,
+              lng: p.lng,
+              phone: p.call || p.mo || ''
+            };
+          });
+        } catch(buildErr) {
+          console.error("WariData build error inside loadMarkers:", buildErr);
+        }
+      }
+      
+      // Ensure seed resources exist for all 6 routes across all category filters
+      var routeSeedResources = [
+        // Eknath Route Points
+        { name: 'Paithan Rural Hospital', cat: 'doc', routes: ['eknath'], lat: 19.4793, lng: 75.3853, phone: '02431-223400' },
+        { name: 'Pathardi Cardiac Unit', cat: 'doc', routes: ['eknath'], lat: 19.1678, lng: 75.1812, phone: '0241-245100' },
+        { name: 'Paithan Highway Ambulance #1', cat: 'ambulance', routes: ['eknath'], lat: 19.4200, lng: 75.3500, phone: '108' },
+        { name: 'Jamkhed Emergency ICU Ambulance', cat: 'ambulance', routes: ['eknath'], lat: 18.6834, lng: 75.3117, phone: '108' },
+        { name: 'Pathardi Police Control Room', cat: 'police', routes: ['eknath'], lat: 19.1650, lng: 75.1800, phone: '100' },
+        { name: 'Kurduvadi Police Outpost', cat: 'police', routes: ['eknath'], lat: 18.0877, lng: 75.4322, phone: '100' },
+        { name: 'Paithan Ghat Water Tanker Station', cat: 'water', routes: ['eknath'], lat: 19.4700, lng: 75.3800 },
+        { name: 'Jamkhed Mobile Toilet Van #4', cat: 'toilet', routes: ['eknath'], lat: 18.6800, lng: 75.3100 },
+        { name: 'Pathardi Night Mukkam Pavilion', cat: 'halt', routes: ['eknath'], lat: 19.1700, lng: 75.1850 },
+        { name: 'Paithan Charanseva Relief Booth', cat: 'charanseva', routes: ['eknath'], lat: 19.4750, lng: 75.3820 },
+        { name: 'Jamkhed Hirkani Feeding Cabin', cat: 'hirkani', routes: ['eknath'], lat: 18.6850, lng: 75.3150 },
+
+        // Gajanan Route Points
+        { name: 'Shegaon General Hospital', cat: 'doc', routes: ['gajanan'], lat: 20.7917, lng: 76.6896, phone: '07265-252055' },
+        { name: 'Akola District Trauma Care', cat: 'doc', routes: ['gajanan'], lat: 20.7002, lng: 77.0082, phone: '0724-2435000' },
+        { name: 'Shegaon 108 Emergency Ambulance', cat: 'ambulance', routes: ['gajanan'], lat: 20.7800, lng: 76.6800, phone: '108' },
+        { name: 'Hingoli Advanced ALS Ambulance', cat: 'ambulance', routes: ['gajanan'], lat: 19.7214, lng: 77.1492, phone: '108' },
+        { name: 'Akola City Police Station', cat: 'police', routes: ['gajanan'], lat: 20.7050, lng: 77.0050, phone: '100' },
+        { name: 'Latur Highway Police Chowki', cat: 'police', routes: ['gajanan'], lat: 18.4088, lng: 76.5604, phone: '100' },
+        { name: 'Washim Mineral Water Unit', cat: 'water', routes: ['gajanan'], lat: 20.1005, lng: 77.1352 },
+        { name: 'Nanded Mobile Sanitation Hub', cat: 'toilet', routes: ['gajanan'], lat: 19.1383, lng: 77.3210 },
+        { name: 'Akola Mukkam Ground', cat: 'halt', routes: ['gajanan'], lat: 20.6900, lng: 77.0100 },
+        { name: 'Shegaon Sansthan Charanseva Camp', cat: 'charanseva', routes: ['gajanan'], lat: 20.7950, lng: 76.6920 },
+        { name: 'Washim Hirkani Lactation Center', cat: 'hirkani', routes: ['gajanan'], lat: 20.1050, lng: 77.1380 },
+
+        // Muktabai Route Points
+        { name: 'Jalgaon Civil Hospital', cat: 'doc', routes: ['muktabai'], lat: 21.0076, lng: 75.5626, phone: '0257-2223400' },
+        { name: 'Aurangabad Medical College & Hospital', cat: 'doc', routes: ['muktabai'], lat: 19.8762, lng: 75.3433, phone: '0240-2331000' },
+        { name: 'Muktainagar Express Ambulance', cat: 'ambulance', routes: ['muktabai'], lat: 21.0569, lng: 76.1264, phone: '108' },
+        { name: 'Beed Emergency Medical Unit', cat: 'ambulance', routes: ['muktabai'], lat: 18.9892, lng: 75.7601, phone: '108' },
+        { name: 'Jalgaon Central Police Outpost', cat: 'police', routes: ['muktabai'], lat: 21.0000, lng: 75.5600, phone: '100' },
+        { name: 'Beed Highway Patrol Sector', cat: 'police', routes: ['muktabai'], lat: 18.9800, lng: 75.7600, phone: '100' },
+        { name: 'Aurangabad Water Supply Tanker', cat: 'water', routes: ['muktabai'], lat: 19.8700, lng: 75.3400 },
+        { name: 'Jalgaon Eco Sanitation Block', cat: 'toilet', routes: ['muktabai'], lat: 21.0100, lng: 75.5650 },
+        { name: 'Beed Night Halt Pavilion', cat: 'halt', routes: ['muktabai'], lat: 18.9950, lng: 75.7650 },
+        { name: 'Muktainagar Charanseva Pavilion', cat: 'charanseva', routes: ['muktabai'], lat: 21.0600, lng: 76.1300 },
+        { name: 'Aurangabad Hirkani Mother & Child Room', cat: 'hirkani', routes: ['muktabai'], lat: 19.8800, lng: 75.3480 },
+
+        // Sopandev Route Points
+        { name: 'Saswad Sub-District Hospital', cat: 'doc', routes: ['sopandev'], lat: 18.3410, lng: 74.0360, phone: '02115-222300' },
+        { name: 'Jejuri Rural Hospital', cat: 'doc', routes: ['sopandev'], lat: 18.2770, lng: 74.1630, phone: '02115-253100' },
+        { name: 'Saswad Dedicated Ambulance #1', cat: 'ambulance', routes: ['sopandev'], lat: 18.3400, lng: 74.0350, phone: '108' },
+        { name: 'Nira Highway ALS Ambulance', cat: 'ambulance', routes: ['sopandev'], lat: 18.1030, lng: 74.2140, phone: '108' },
+        { name: 'Saswad Police Station', cat: 'police', routes: ['sopandev'], lat: 18.3430, lng: 74.0380, phone: '100' },
+        { name: 'Phaltan Police Station', cat: 'police', routes: ['sopandev'], lat: 17.9911, lng: 74.4317, phone: '100' },
+        { name: 'Jejuri Temple Water Tanker Point', cat: 'water', routes: ['sopandev'], lat: 18.2750, lng: 74.1600 },
+        { name: 'Nira Sanitation Complex', cat: 'toilet', routes: ['sopandev'], lat: 18.1000, lng: 74.2100 },
+        { name: 'Phaltan Mukkam Rest Pavilion', cat: 'halt', routes: ['sopandev'], lat: 17.9950, lng: 74.4350 },
+        { name: 'Saswad Charanseva Seva Kendra', cat: 'charanseva', routes: ['sopandev'], lat: 18.3450, lng: 74.0390 },
+        { name: 'Nira Hirkani Room', cat: 'hirkani', routes: ['sopandev'], lat: 18.1050, lng: 74.2180 }
+      ];
+
+      var combinedPts = rawPts.concat(routeSeedResources);
+
+      combinedPts.forEach(function(p) {
+        if (!p.lat || !p.lng) return;
+        var color = catColor(p.cat);
+        var marker = L.circleMarker([p.lat, p.lng], {
+          radius: 6,
+          fillColor: color,
+          color: '#000000',
+          weight: 1,
+          fillOpacity: 0.85
+        });
+        var popup = '<div style="font-family:Outfit,sans-serif;min-width:160px;color:#0f172a;">'
+          + '<b style="font-size:13px;color:#0f172a;">' + (p.name || p.title || '—') + '</b>'
+          + '<div style="font-size:10px;color:#64748b;margin:3px 0;text-transform:uppercase;">' + catLabel(p.cat) + '</div>';
+        if (p.phone) popup += '<a href="tel:' + p.phone + '" style="color:#4f46e5;font-size:12px;font-weight:600">' + p.phone + '</a><br>';
+        if (p.lat && p.lng) popup += '<a href="https://www.google.com/maps/dir/?api=1&destination=' + p.lat + ',' + p.lng + '" target="_blank" style="color:#16a34a;font-size:11px">Directions ↗</a>';
+        popup += '</div>';
+        marker.bindPopup(popup);
+        marker.addTo(mapObj);
+        
+        var routesList = p.routes || ['both'];
+        allMarkers.push({ marker: marker, cat: p.cat, routes: routesList });
+      });
+
+      updateStats();
+      applyFilters();
+    }
+
+    function catColor(cat) {
+      var map = {
+        ambulance: '#ef4444', doc: '#10b981', water: '#22d3ee',
+        police: '#3b82f6', toilet: '#a78bfa', halt: '#f59e0b',
+        charanseva: '#f472b6', hirkani: '#fb7185'
+      };
+      return map[cat] || '#94a3b8';
+    }
+
+    function catLabel(cat) {
+      var map = {
+        ambulance: 'Ambulance', doc: 'Medical / Hospital',
+        water: 'Water Point', police: 'Police Post',
+        toilet: 'Toilet', halt: 'Mukkam / Halt',
+        charanseva: 'Charanseva', hirkani: 'Hirkani Booth'
+      };
+      return map[cat] || cat || 'Resource';
+    }
+
+    function filterCat(cat) {
+      activeCat = cat;
+      document.querySelectorAll('.cat-chip').forEach(function(el) {
+        el.classList.toggle('active', el.dataset.cat === cat);
+      });
+      applyFilters();
+    }
+
+    function onWariChange() {
+      activeWari = document.getElementById('wariSelect').value;
+      
+      var labels = {
+        all: {
+          name: 'All Routes Overview',
+          code: 'ALL-WARI-2026',
+          start: 'Multiple Origins (MH)',
+          dest: 'Pandharpur',
+          dist: '1,450 km total network',
+          path: '6 Major Pilgrimage Corridors ➔ Pandharpur'
+        },
+        dnyaneshwar: {
+          name: 'Sant Dnyaneshwar Maharaj Palkhi',
+          code: 'DNY-2026',
+          start: 'Alandi (Pune)',
+          dest: 'Pandharpur',
+          dist: '228 km',
+          path: 'Alandi ➔ Pune ➔ Saswad ➔ Jejuri ➔ Nira ➔ Lonand ➔ Phaltan ➔ Natepute ➔ Velapur ➔ Pandharpur'
+        },
+        tukaram: {
+          name: 'Sant Tukaram Maharaj Palkhi',
+          code: 'TUK-2026',
+          start: 'Dehu (Pune)',
+          dest: 'Pandharpur',
+          dist: '250 km',
+          path: 'Dehu ➔ Pune ➔ Loni Kalbhor ➔ Baramati ➔ Indapur ➔ Wakhari ➔ Pandharpur'
+        },
+        eknath: {
+          name: 'Sant Eknath Maharaj Palkhi',
+          code: 'EKN-2026',
+          start: 'Paithan (Chhatrapati Sambhajinagar)',
+          dest: 'Pandharpur',
+          dist: '265 km',
+          path: 'Paithan ➔ Pathardi ➔ Jamkhed ➔ Kurduvadi ➔ Pandharpur'
+        },
+        gajanan: {
+          name: 'Sant Gajanan Maharaj Palkhi',
+          code: 'GAJ-2026',
+          start: 'Shegaon (Buldhana)',
+          dest: 'Pandharpur',
+          dist: '710 km',
+          path: 'Shegaon ➔ Akola ➔ Washim ➔ Hingoli ➔ Nanded ➔ Latur ➔ Solapur ➔ Pandharpur'
+        },
+        muktabai: {
+          name: 'Sant Muktabai Palkhi',
+          code: 'MUK-2026',
+          start: 'Muktainagar (Jalgaon)',
+          dest: 'Pandharpur',
+          dist: '480 km',
+          path: 'Muktainagar ➔ Jalgaon ➔ Aurangabad ➔ Beed ➔ Solapur ➔ Pandharpur'
+        },
+        sopandev: {
+          name: 'Sant Sopandev Palkhi',
+          code: 'SOP-2026',
+          start: 'Saswad (Pune)',
+          dest: 'Pandharpur',
+          dist: '210 km',
+          path: 'Saswad ➔ Jejuri ➔ Nira ➔ Phaltan ➔ Velapur ➔ Pandharpur'
+        }
+      };
+
+      var selectInfo = labels[activeWari] || labels.all;
+      
+      // Update UI panels to match route selection
+      document.getElementById('infoConvoyName').textContent = selectInfo.name;
+      if (document.getElementById('infoStart')) document.getElementById('infoStart').textContent = selectInfo.start;
+      if (document.getElementById('infoDest')) document.getElementById('infoDest').textContent = selectInfo.dest;
+      if (document.getElementById('infoDistance')) document.getElementById('infoDistance').textContent = selectInfo.dist;
+      document.getElementById('infoPathway').textContent = selectInfo.path;
+
+      document.getElementById('telConvoyName').innerHTML = selectInfo.name + ' <span id="telConvoyId">(' + selectInfo.code + ')</span>';
+      var telSub = document.querySelector('.telemetry-subtitle');
+      if (telSub) {
+        telSub.innerHTML = 'ORIGIN: <strong>' + selectInfo.start + '</strong> ➔ DESTINATION: <strong>' + selectInfo.dest + '</strong> &nbsp;|&nbsp; TOTAL DISTANCE: <strong>' + selectInfo.dist + '</strong>';
+      }
+
+      // Update Live Camera Feed Location Names per Route
+      var routeCameraFeeds = {
+        all: [
+          { title: 'SECTOR A - ALANDI-PUNE CORRIDOR', sub: 'Swargate Junction Surveillance' },
+          { title: 'SECTOR B - DEHU-LONI CORRIDOR', sub: 'Loni Toll Plaza Feed' },
+          { title: 'SECTOR C - CSN-BEED CORRIDOR', sub: 'Aurangabad Central Hub' },
+          { title: 'SECTOR D - PANDHARPUR HUB', sub: 'Vitthal Temple Terminal' }
+        ],
+        dnyaneshwar: [
+          { title: 'SECTOR A - ALANDI STARTING NODE', sub: 'Alandi Temple Entry Gate' },
+          { title: 'SECTOR B - PUNE SWARGATE HUB', sub: 'Swargate Chowk Live Feed' },
+          { title: 'SECTOR C - HADAPSAR DIVERSION', sub: 'Hadapsar Gadital Junction' },
+          { title: 'SECTOR D - DIVE GHAT PASS', sub: 'Dive Ghat Corridor Feed' }
+        ],
+        tukaram: [
+          { title: 'SECTOR A - DEHU DHAM GATE', sub: 'Dehu Gatha Mandir Square' },
+          { title: 'SECTOR B - LONI KALBHOR HALT', sub: 'Loni Toll Plaza Sector' },
+          { title: 'SECTOR C - YAWAT HIGHWAY FEED', sub: 'Yawat Bypass Junction' },
+          { title: 'SECTOR D - KEDGAON CORRIDOR', sub: 'Kedgaon Station Square' }
+        ],
+        eknath: [
+          { title: 'SECTOR A - PAITHAN GODAVARI GATE', sub: 'Paithan Temple Corridor' },
+          { title: 'SECTOR B - PATHARDI NAKA HUB', sub: 'Pathardi Bypass Chowk' },
+          { title: 'SECTOR C - TISGAON DIVERSION', sub: 'Tisgaon Tiraha Junction' },
+          { title: 'SECTOR D - JAMKHED BORDER', sub: 'Jamkhed Outpost Feed' }
+        ],
+        gajanan: [
+          { title: 'SECTOR A - SHEGAON SANSTHAN GATE', sub: 'Anand Sagar Square' },
+          { title: 'SECTOR B - AKOLA CITY SECTOR', sub: 'Akola Highway Chowk' },
+          { title: 'SECTOR C - HINGOLI LIVE HUB', sub: 'Hingoli Nanded Naka' },
+          { title: 'SECTOR D - AUNDHA NAGNATH PASS', sub: 'Aundha Cross Junction' }
+        ],
+        muktabai: [
+          { title: 'SECTOR A - MUKTAINAGAR START', sub: 'Muktainagar Highway Gate' },
+          { title: 'SECTOR B - JALGAON CENTRAL HUB', sub: 'Jalgaon Civil Square' },
+          { title: 'SECTOR C - CSN FLYOVER FEED', sub: 'Aurangabad Jalna Chowk' },
+          { title: 'SECTOR D - BEED BYPASS CORRIDOR', sub: 'Beed Outpost Station' }
+        ],
+        sopandev: [
+          { title: 'SECTOR A - SASWAD TEMPLE GATE', sub: 'Saswad Square Live Feed' },
+          { title: 'SECTOR B - JEJURI ROAD NAKA', sub: 'Jejuri Temple Approach' },
+          { title: 'SECTOR C - NIRA RIVER SECTOR', sub: 'Nira Bridge Inspection Point' },
+          { title: 'SECTOR D - PHALTAN HALT HUB', sub: 'Phaltan Pavilion Feed' }
+        ]
+      };
+
+      var feeds = routeCameraFeeds[activeWari] || routeCameraFeeds.all;
+      for (var k = 0; k < 4; k++) {
+        var tEl = document.getElementById('camTitle' + (k + 1));
+        var sEl = document.getElementById('camSub' + (k + 1));
+        if (tEl && feeds[k]) tEl.textContent = feeds[k].title;
+        if (sEl && feeds[k]) sEl.textContent = feeds[k].sub;
+      }
+
+      // Update Authorization Matrix Bottlenecks per Route
+      updateAuthorizationMatrixBottlenecks(activeWari);
+
+      // Snap convoy sim marker to the selected Palkhi's live position first
+      if (activeWari !== 'all') {
+        updateConvoyForRoute(activeWari);
+      }
+
+      // Draw detailed route lines
+      drawDetailedWariRoute(activeWari);
+
+      applyFilters();
+    }
+
+    function updateAuthorizationMatrixBottlenecks(routeKey) {
+      var routeBottleneckData = {
+        dnyaneshwar: {
+          normalPath: 'Alandi ➔ Pune ➔ Loni Kalbhor ➔ Saswad (Bottleneck Clog)',
+          normalCP: [
+            { name: 'Swargate Highway Junction', dist: '0.5 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Divert Feeder Traffic to Market Yard' },
+            { name: 'Hadapsar Gadital Chowk', dist: '1.0 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Deploy Traffic Officer & Lock Feeder Lane' },
+            { name: 'Loni Kalbhor Bypass', dist: '1.6 km', tag: 'MODERATE CROWD', tagClass: 'tag-moderate', action: 'Management: Speed Monitoring & Single-Lane Access' }
+          ],
+          optPath: 'Alandi ➔ Pune ➔ Hadapsar Diversion ➔ Saswad Bypass',
+          optCP: [
+            { name: 'Dive Ghat Pass Corridor', dist: '2.2 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Restrict Heavy Vehicles & Open Bypass' },
+            { name: 'Saswad Tri-Junction Node', dist: '2.8 km', tag: 'CLEAR FLOW', tagClass: 'tag-clear', action: 'Management: Maintain Unobstructed Convoy Highway' }
+          ],
+          emergPath: 'Alandi ➔ Phaltan ➔ Special Ambulance Corridor ➔ Natepute',
+          emergCP: [
+            { name: 'Phaltan Medical Access Point', dist: 'Emergency Hub', tag: 'CLEAR EMERGENCY CHANNEL', tagClass: 'tag-clear', action: 'Management: 24/7 Dedicated Ambulance Priority & ICU Escort' }
+          ]
+        },
+        tukaram: {
+          normalPath: 'Dehu ➔ Nigdi ➔ Pune ➔ Loni Kalbhor (Bottleneck)',
+          normalCP: [
+            { name: 'Dehu Gatha Mandir Square', dist: '0.5 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: One-Way Pedestrian Movement Only' },
+            { name: 'Nigdi Flyover Merge', dist: '1.0 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Divert Highway Freight via Old Highway' },
+            { name: 'Loni Kalbhor Toll Plaza', dist: '1.6 km', tag: 'MODERATE CROWD', tagClass: 'tag-moderate', action: 'Management: Open All Toll Lanes for Palkhi Convoy' }
+          ],
+          optPath: 'Dehu ➔ Pune ➔ Loni Kalbhor ➔ Baramati ➔ Indapur',
+          optCP: [
+            { name: 'Yawat Bypass Junction', dist: '2.2 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Lock Feeder Side Roads' },
+            { name: 'Kedgaon Station Square', dist: '2.8 km', tag: 'CLEAR FLOW', tagClass: 'tag-clear', action: 'Management: Maintain Clear Emergency Pass' }
+          ],
+          emergPath: 'Dehu ➔ Pune Expressway ➔ Dedicated Medical Pass ➔ Pandharpur',
+          emergCP: [
+            { name: 'Hadapsar Critical Care Bypass', dist: 'Med Priority', tag: 'CLEAR EMERGENCY CHANNEL', tagClass: 'tag-clear', action: 'Management: Instant Police Escort & Ambulance Green Corridor' }
+          ]
+        },
+        eknath: {
+          normalPath: 'Paithan ➔ Pathardi ➔ Jamkhed ➔ Kurduvadi (Clog)',
+          normalCP: [
+            { name: 'Paithan Godavari Ghat Gate', dist: '0.5 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Deploy River Bank Security Team' },
+            { name: 'Pathardi Bypass Chowk', dist: '1.0 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Block Commercial Traffic from Ahmednagar' },
+            { name: 'Tisgaon Tiraha Junction', dist: '1.6 km', tag: 'MODERATE CROWD', tagClass: 'tag-moderate', action: 'Management: Alternate Signal Clearance' }
+          ],
+          optPath: 'Paithan ➔ Pathardi Bypass ➔ Jamkhed Direct Highway',
+          optCP: [
+            { name: 'Jamkhed Border Post', dist: '2.2 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Activate Inter-State Police Outpost' },
+            { name: 'Kurduvadi Crossing', dist: '2.8 km', tag: 'CLEAR FLOW', tagClass: 'tag-clear', action: 'Management: Clear Railway Overbridge Approaches' }
+          ],
+          emergPath: 'Paithan ➔ Jamkhed ➔ Kurduvadi Hospital Transit',
+          emergCP: [
+            { name: 'Kurduvadi Trauma Station', dist: 'Med Hub', tag: 'CLEAR EMERGENCY CHANNEL', tagClass: 'tag-clear', action: 'Management: Reserve Emergency ICU Corridor' }
+          ]
+        },
+        gajanan: {
+          normalPath: 'Shegaon ➔ Akola ➔ Washim ➔ Hingoli (Long Transit)',
+          normalCP: [
+            { name: 'Shegaon Sansthan Square', dist: '0.5 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Manage Main Temple Gate Congestion' },
+            { name: 'Akola Highway Naka', dist: '1.0 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Divert National Highway Traffic via Ring Road' },
+            { name: 'Washim Civil Lines', dist: '1.6 km', tag: 'MODERATE CROWD', tagClass: 'tag-moderate', action: 'Management: Stagger Devotee Procession Batches' }
+          ],
+          optPath: 'Shegaon ➔ Akola Bypass ➔ Hingoli Fast Expressway',
+          optCP: [
+            { name: 'Hingoli Bypass Node', dist: '2.2 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Enforce Road Blockade on Feeder Roads' },
+            { name: 'Nanded Tri-Road', dist: '2.8 km', tag: 'CLEAR FLOW', tagClass: 'tag-clear', action: 'Management: Keep Ambulance Lane Unobstructed' }
+          ],
+          emergPath: 'Shegaon ➔ Akola Trauma Express Corridor',
+          emergCP: [
+            { name: 'Akola Emergency Unit', dist: 'Med Fast', tag: 'CLEAR EMERGENCY CHANNEL', tagClass: 'tag-clear', action: 'Management: Continuous Rapid Medevac Access' }
+          ]
+        },
+        muktabai: {
+          normalPath: 'Muktainagar ➔ Jalgaon ➔ Aurangabad (City Clog)',
+          normalCP: [
+            { name: 'Muktainagar Highway Gate', dist: '0.5 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Deploy Highway Patrol for Convoy Exit' },
+            { name: 'Jalgaon Civil Square', dist: '1.0 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Reroute Local Bus Traffic' },
+            { name: 'Aurangabad Jalna Flyover', dist: '1.6 km', tag: 'MODERATE CROWD', tagClass: 'tag-moderate', action: 'Management: Monitor Elevated Corridor Capacity' }
+          ],
+          optPath: 'Muktainagar ➔ Jalgaon Bypass ➔ Beed Expressway',
+          optCP: [
+            { name: 'Beed Bypass Outpost', dist: '2.2 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Dispatch Anomaly Alert & Lock Junction' },
+            { name: 'Solapur Highway Entry', dist: '2.8 km', tag: 'CLEAR FLOW', tagClass: 'tag-clear', action: 'Management: Maintain High-Speed Clear Channel' }
+          ],
+          emergPath: 'Muktainagar ➔ CSN Airport Medical Route',
+          emergCP: [
+            { name: 'Chhatrapati Sambhajinagar ICU Pass', dist: 'Med Priority', tag: 'CLEAR EMERGENCY CHANNEL', tagClass: 'tag-clear', action: 'Management: Standby Air Ambulance & Ground Escort' }
+          ]
+        },
+        sopandev: {
+          normalPath: 'Saswad ➔ Jejuri ➔ Nira ➔ Phaltan (Crowd Clog)',
+          normalCP: [
+            { name: 'Saswad Temple Square', dist: '0.5 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Restrict Private Vehicles in Temple Zone' },
+            { name: 'Jejuri Road Naka', dist: '1.0 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Manage Temple Hill Access Traffic' },
+            { name: 'Nira River Bridge Sector', dist: '1.6 km', tag: 'MODERATE CROWD', tagClass: 'tag-moderate', action: 'Management: Structural Load Control on Bridge' }
+          ],
+          optPath: 'Saswad ➔ Jejuri Bypass ➔ Nira Highway ➔ Phaltan',
+          optCP: [
+            { name: 'Phaltan Pavilion Halt', dist: '2.2 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Setup Night Halt Diversions' },
+            { name: 'Velapur Highway Junction', dist: '2.8 km', tag: 'CLEAR FLOW', tagClass: 'tag-clear', action: 'Management: Direct Traffic to Pandharpur Bypass' }
+          ],
+          emergPath: 'Saswad ➔ Phaltan Hospital Express Corridor',
+          emergCP: [
+            { name: 'Phaltan Civil Emergency Node', dist: 'Med Priority', tag: 'CLEAR EMERGENCY CHANNEL', tagClass: 'tag-clear', action: 'Management: Immediate Ambulance Corridor Clearance' }
+          ]
+        },
+        all: {
+          normalPath: 'Multiple Origins ➔ Pune / Ahmednagar / Jalgaon ➔ Pandharpur',
+          normalCP: [
+            { name: 'Swargate Highway Junction', dist: '0.5 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Divert Feeder Traffic to Market Yard' },
+            { name: 'Hadapsar Gadital Chowk', dist: '1.0 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Deploy Traffic Officer & Lock Feeder Lane' },
+            { name: 'Loni Kalbhor Bypass', dist: '1.6 km', tag: 'MODERATE CROWD', tagClass: 'tag-moderate', action: 'Management: Speed Monitoring & Single-Lane Access' }
+          ],
+          optPath: 'Multi-Corridor Network ➔ Hadapsar / Jejuri / Beed Bypasses',
+          optCP: [
+            { name: 'Dive Ghat Pass Corridor', dist: '2.2 km', tag: 'HEAVY CONGESTION', tagClass: 'tag-heavy', action: 'Management: Restrict Heavy Vehicles & Open Bypass' },
+            { name: 'Saswad Tri-Junction Node', dist: '2.8 km', tag: 'CLEAR FLOW', tagClass: 'tag-clear', action: 'Management: Maintain Unobstructed Convoy Highway' }
+          ],
+          emergPath: 'Statewide Health Grid ➔ Multi-Hospital Green Lanes',
+          emergCP: [
+            { name: 'Central Command Medical Corridor', dist: 'Statewide', tag: 'CLEAR EMERGENCY CHANNEL', tagClass: 'tag-clear', action: 'Management: 24/7 Dedicated Ambulance Escort & Air Medevac' }
+          ]
+        }
+      };
+
+      var data = routeBottleneckData[routeKey] || routeBottleneckData.all;
+
+      // Update Row 1: Normal Route
+      var cellNormal = document.getElementById('pathCellNormal');
+      if (cellNormal) {
+        var html1 = '<div>' + data.normalPath + '</div>'
+          + '<div class="bottleneck-box">'
+          + '<div class="bottleneck-title">ACTIVE ROAD BOTTLENECKS &amp; CHOKEPOINTS (ON WARI PATH)</div>';
+        data.normalCP.forEach(function(cp, idx) {
+          html1 += '<div class="chokepoint-item"' + (idx > 0 ? ' style="margin-top:4px;"' : '') + '>'
+            + '<span>Chokepoint #' + (idx + 1) + ' (' + cp.dist + '): <strong>' + cp.name + '</strong></span>'
+            + '<span class="' + cp.tagClass + '">' + cp.tag + '</span>'
+            + '</div>'
+            + '<div class="chokepoint-action">' + cp.action + '</div>';
+        });
+        html1 += '</div>';
+        cellNormal.innerHTML = html1;
+      }
+
+      // Update Row 2: Agent Optimized Route
+      var cellOpt = document.getElementById('pathCellOpt');
+      if (cellOpt) {
+        var html2 = '<div>' + data.optPath + '</div>'
+          + '<div class="bottleneck-box">'
+          + '<div class="bottleneck-title">OPTIMIZED CHOKEPOINT BYPASSES &amp; DIVERSION NODES</div>';
+        data.optCP.forEach(function(cp, idx) {
+          html2 += '<div class="chokepoint-item"' + (idx > 0 ? ' style="margin-top:4px;"' : '') + '>'
+            + '<span>Chokepoint #' + (idx + 4) + ' (' + cp.dist + '): <strong>' + cp.name + '</strong></span>'
+            + '<span class="' + cp.tagClass + '">' + cp.tag + '</span>'
+            + '</div>'
+            + '<div class="chokepoint-action">' + cp.action + '</div>';
+        });
+        html2 += '</div>';
+        cellOpt.innerHTML = html2;
+      }
+
+      // Update Row 3: Emergency Health Lane
+      var cellEmerg = document.getElementById('pathCellEmergency');
+      if (cellEmerg) {
+        var html3 = '<div>' + data.emergPath + '</div>'
+          + '<div class="bottleneck-box">'
+          + '<div class="bottleneck-title">EMERGENCY HEALTH CORRIDOR CHOKEPOINT MANAGEMENT</div>';
+        data.emergCP.forEach(function(cp, idx) {
+          html3 += '<div class="chokepoint-item">'
+            + '<span>Emergency Node: <strong>' + cp.name + '</strong></span>'
+            + '<span class="' + cp.tagClass + '">' + cp.tag + '</span>'
+            + '</div>'
+            + '<div class="chokepoint-action">' + cp.action + '</div>';
+        });
+        html3 += '</div>';
+        cellEmerg.innerHTML = html3;
+      }
+    }
+
+    function applyFilters() {
+      var visible = 0;
+      allMarkers.forEach(function(m) {
+        var matchCat = activeCat === 'all' || m.cat === activeCat;
+        var matchWari = activeWari === 'all' || (m.routes && (m.routes.indexOf(activeWari) !== -1 || m.routes.indexOf('both') !== -1));
+        if (matchCat && matchWari) {
+          m.marker.addTo(mapObj);
+          visible++;
+        } else {
+          mapObj.removeLayer(m.marker);
+        }
+      });
+
+      // Filter live wari position dots to match activeWari
+      wariLiveMarkers.forEach(function(w) {
+        if (activeWari === 'all' || w.palkhi === activeWari) {
+          w.marker.addTo(mapObj);
+        } else {
+          mapObj.removeLayer(w.marker);
+        }
+      });
+
+      var visibleCountEl = document.getElementById('visibleCount');
+      if (visibleCountEl) {
+        visibleCountEl.textContent = visible;
+      }
+      initPandharpurDestinationMarker();
+    }
+
+    function updateStats() {
+      var counts = { ambulance: 0, doc: 0, police: 0, water: 0, toilet: 0, halt: 0 };
+      allMarkers.forEach(function(m) { if (counts[m.cat] !== undefined) counts[m.cat]++; });
+      // Renders mock agents count based on points
+      var activeAgentsStatEl = document.getElementById('activeAgentsStat');
+      if (activeAgentsStatEl) {
+        activeAgentsStatEl.textContent = (counts.police + 12) + ' Nodes';
+      }
+    }
+
+    // ── Incident Modal ──
+    var currentRecipient = 'emergency';
+
+    function openIncident(type) {
+      currentRecipient = type;
+      var titles = {
+        emergency: 'Report Incident',
+        police: 'Alert Police',
+        traffic: 'Alert Traffic Police',
+        medical: 'Dispatch Ambulance'
+      };
+      var subs = {
+        emergency: 'Raise a general incident alert to command',
+        police: 'Send immediate alert to nearest police post',
+        traffic: 'Send traffic alert to traffic police control room',
+        medical: 'Request ambulance dispatch to a location'
+      };
+      document.getElementById('modalTitle').textContent = titles[type] || 'Report';
+      document.getElementById('modalSub').textContent = subs[type] || '';
+      var badge = document.getElementById('recipientBadge');
+      if (type === 'police') {
+        badge.innerHTML = '<span class="recipient-badge police">Recipient: Police Control Room</span>';
+      } else if (type === 'traffic') {
+        badge.innerHTML = '<span class="recipient-badge traffic">Recipient: Traffic Police</span>';
+      } else {
+        badge.innerHTML = '';
+      }
+      document.getElementById('incidentModal').classList.add('open');
+    }
+
+    function closeModal(e) {
+      if (e.target === document.getElementById('incidentModal')) closeIncident();
+    }
+
+    function closeIncident() {
+      document.getElementById('incidentModal').classList.remove('open');
+    }
+
+    function submitIncident() {
+      var loc = document.getElementById('incLoc').value.trim();
+      var desc = document.getElementById('incDesc').value.trim();
+      if (!loc) { document.getElementById('incLoc').focus(); return; }
+      closeIncident();
+      var msgs = {
+        police: 'Police alerted for: ' + loc,
+        traffic: 'Traffic Police notified for: ' + loc,
+        medical: 'Ambulance dispatch requested at: ' + loc,
+        emergency: 'Incident logged at: ' + loc
+      };
+      showToast('✓ ' + (msgs[currentRecipient] || 'Alert dispatched successfully'));
+      document.getElementById('incLoc').value = '';
+      document.getElementById('incDesc').value = '';
+    }
+
+    // ── Funnel Modal ──
+    function openFunnel() {
+      document.getElementById('funnelModal').classList.add('open');
+    }
+    function closeFunnel() {
+      document.getElementById('funnelModal').classList.remove('open');
+    }
+    function closeFunnelModal(e) {
+      if (e.target === document.getElementById('funnelModal')) closeFunnel();
+    }
+
+    function syncTelemetry() {
+      showToast('⚡ Syncing telemetry feeds across AIS and road nodes...');
+    }
+
+    // ── Ticking timer logic (Countdown: 12h - 54m - 47s) ──
+    var widgetSeconds = 46487;
+    function tickWidgetCountdown() {
+      if (widgetSeconds > 0) widgetSeconds--;
+      var hrs = Math.floor(widgetSeconds / 3600);
+      var mins = Math.floor((widgetSeconds % 3600) / 60);
+      var secs = widgetSeconds % 60;
+      var timeStr = (String(hrs).padStart(2,'0')) + 'h - ' + (String(mins).padStart(2,'0')) + 'm - ' + (String(secs).padStart(2,'0')) + 's';
+      var el = document.getElementById('widgetCountdown');
+      if (el) el.textContent = timeStr;
+    }
+    setInterval(tickWidgetCountdown, 1000);
+
+    // ── Dynamic Convoy Tracking Simulation ──
+    var convoyMarker = null;
+    var currentSimStep = 0;
+    var startLat = 18.5204;
+    var startLng = 73.8567;
+    var coveredBase = 18.4;
+    var remainingBase = 12.6;
+    var simulationActive = true;
+    var _simIntervalId = null;
+
+    // Live positions per route — kept in sync with drawDetailedWariRoute liveData
+    var routeLivePositions = {
+      dnyaneshwar: [18.5018, 73.8576],
+      tukaram:     [18.4890, 74.0275],
+      eknath:      [19.1678, 75.1812],
+      gajanan:     [19.7214, 77.1492],
+      muktabai:    [19.8762, 75.3433],
+      sopandev:    [18.3410, 74.0360]
+    };
+
+    // Call this whenever route changes to update convoy sim to new Palkhi position
+    function updateConvoyForRoute(routeKey) {
+      var livePos = routeLivePositions[routeKey] || routeLivePositions.dnyaneshwar;
+      startLat = livePos[0];
+      startLng = livePos[1];
+      currentSimStep = 0;
+
+      if (convoyMarker) {
+        convoyMarker.setLatLng([startLat, startLng]);
+      }
+    }
+
+    function runConvoySimulation() {
+      if (!mapObj) return;
+
+      if (!convoyMarker) {
+        convoyMarker = L.circleMarker([startLat, startLng], {
+          radius: 9,
+          fillColor: '#a78bfa',
+          color: '#ffffff',
+          weight: 2,
+          fillOpacity: 1
+        }).addTo(mapObj);
+        convoyMarker.bindPopup('<b>Active Convoy GPS Track</b><br>Real-time telemetry active.');
+      }
+
+      // Clear any previous interval before starting a new one
+      if (_simIntervalId) clearInterval(_simIntervalId);
+
+      _simIntervalId = setInterval(function() {
+        if (!simulationActive) return;
+
+        currentSimStep++;
+        var nextLat = startLat - (currentSimStep * 0.0004);
+        var nextLng = startLng + (currentSimStep * 0.0006);
+        var nextPos = [nextLat, nextLng];
+
+        convoyMarker.setLatLng(nextPos);
+        // Only auto-pan if the user hasn't manually moved the map
+        if (!_mapUserMoved) {
+          mapObj.panTo(nextPos);
+        }
+
+        var nextCovered = (coveredBase + (currentSimStep * 0.1)).toFixed(1);
+        var nextRemaining = Math.max(0, (remainingBase - (currentSimStep * 0.1))).toFixed(1);
+
+        document.getElementById('widgetDistance').textContent = nextCovered + ' km';
+        document.getElementById('widgetRemaining').textContent = nextRemaining + ' km';
+        document.getElementById('widgetLat').textContent = 'LAT: ' + nextLat.toFixed(5);
+        document.getElementById('widgetLng').textContent = 'LNG: ' + nextLng.toFixed(5);
+      }, 3000);
+    }
+
+    // ── Table Rerouting interactive updates ──
+    function approveReroute() {
+      // Draw optimized polyline diversion on map
+      var diversionPath = [
+        [18.5204, 73.8567],
+        [18.5020, 73.9010],
+        [18.4810, 73.9620],
+        [18.4410, 74.0530],
+        [18.4120, 74.1200]
+      ];
+      L.polyline(diversionPath, { color: '#22c55e', weight: 6, opacity: 0.95 }).addTo(mapObj);
+      mapObj.flyTo([18.4810, 73.9620], 11);
+
+      // Update table highlight row
+      document.getElementById('rowNormal').classList.remove('active');
+      document.getElementById('rowAgentOpt').classList.add('active');
+
+      // Update statuses and telemetry card
+      document.getElementById('systemStatusText').textContent = 'OPTIMIZED';
+      document.getElementById('telStatusBadge').className = 'badge badge-success';
+      document.getElementById('telStatusBadge').textContent = '[AGENT OPTIMIZED]';
+      document.getElementById('telChainStatus').className = 'badge badge-info';
+      document.getElementById('telChainStatus').textContent = '[ON-CHAIN CONTRACT SEEDED]';
+
+      // Update widget text hash and block number
+      document.getElementById('widgetBlock').textContent = 'Block #189885';
+      document.getElementById('widgetHash').textContent = '0x8f2dc55a9e3d81b4d092a9ef4c10be6a89c';
+
+      showToast('⚡ Reroute command executed successfully. Polygon Tx hash generated: 0x8f2dc... anchored in block #189885!');
+    }
+
+    function approveEmergency() {
+      var emergencyPath = [
+        [18.5204, 73.8567],
+        [18.3510, 74.1500],
+        [18.1200, 74.4500]
+      ];
+      L.polyline(emergencyPath, { color: '#22d3ee', weight: 6, opacity: 0.95 }).addTo(mapObj);
+      mapObj.flyTo([18.3510, 74.1500], 11);
+
+      document.getElementById('rowNormal').classList.remove('active');
+      document.getElementById('rowAgentOpt').classList.remove('active');
+      document.getElementById('rowEmergency').classList.add('active');
+
+      document.getElementById('systemStatusText').textContent = 'EMERGENCY LANES ACTIVE';
+      document.getElementById('telStatusBadge').className = 'badge badge-info';
+      document.getElementById('telStatusBadge').textContent = '[EMERGENCY LANES SEEDED]';
+
+      showToast('Emergency health corridor activated! Convoy dispatcher notified.');
+    }
+
+    // Initialize Supabase Client
+    const supabaseUrl = 'https://rtljcbueiwttbdqqivpe.supabase.co';
+    const supabaseKey = 'sb_publishable_PkL-cddi3fGpeXOiDnTLkw_G8_R9hy_';
+    let supabaseClient = null;
+    try {
+      supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    } catch(e) {
+      console.warn('Supabase initialization warning:', e);
+    }
+
+    function sanitizeField(val, fallback) {
+      if (val === undefined || val === null) return fallback;
+      const str = String(val).trim();
+      if (str === "" || str.toLowerCase() === "none" || str.toLowerCase() === "null" || str.toLowerCase() === "undefined") {
+        return fallback;
+      }
+      return str;
+    }
+
+    function renderDriversListFallback() {
+      const tbody = document.getElementById('truckGateTableBody');
+      if (!tbody) return;
+      
+      const fallbackList = [
+        {
+          truck_plate: "MH12YR4051",
+          driver_name: "Vaibhav Marne",
+          contact_number: "+919284223412",
+          vehicle_type: "12,000L Potable Water Tanker",
+          depot: "Hadapsar Goods Depot"
+        },
+        {
+          truck_plate: "MH-14-TR-9102",
+          driver_name: "Suresh Deshmukh",
+          contact_number: "+919284223412",
+          vehicle_type: "10-Ton Emergency Ration Freight",
+          depot: "Loni Kalbhor Freight Yard"
+        },
+        {
+          truck_plate: "MH-11-AA-3049",
+          driver_name: "Vikram Shinde",
+          contact_number: "+919284223412",
+          vehicle_type: "Mobile ICU Medical Supply Van",
+          depot: "Swargate Transport Hub"
+        }
+      ];
+
+      tbody.innerHTML = '';
+      fallbackList.forEach(d => {
+        const escapedPlate = String(d.truck_plate).replace(/'/g, "\\'");
+        const escapedName = String(d.driver_name).replace(/'/g, "\\'");
+        const escapedContact = String(d.contact_number).replace(/'/g, "\\'");
+        const escapedType = String(d.vehicle_type).replace(/'/g, "\\'");
+        const escapedDepot = String(d.depot).replace(/'/g, "\\'");
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight: 700; color: #0f172a;">
+            <div>${d.truck_plate}</div>
+            <div style="font-size: 12px; font-weight: 500; color: #64748b;">Driver: ${d.driver_name}</div>
+          </td>
+          <td style="font-size: 13px; color: #334155; font-weight: 600;">${d.vehicle_type}</td>
+          <td style="font-size: 13px; color: #64748b;">${d.depot}</td>
+          <td><span id="badge-${d.truck_plate}" class="badge badge-success" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;">[PENDING APPROVAL]</span></td>
+          <td>
+            <button class="btn-table-action" style="background: #0f172a; color: #ffffff;" onclick="dispatchTruckBackend('${escapedPlate}', '${escapedName}', '${escapedContact}', '${escapedType}', '${escapedDepot}')">
+              Approve &amp; Send Twilio SMS
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadSupabaseDrivers() {
+      try {
+        // 1. Setup default fallback mock drivers
+        let driversList = [
+          {
+            truck_plate: "MH12YR4051",
+            driver_name: "Vaibhav Marne",
+            contact_number: "+919284223412",
+            vehicle_type: "12,000L Potable Water Tanker",
+            depot: "Hadapsar Goods Depot"
+          },
+          {
+            truck_plate: "MH-14-TR-9102",
+            driver_name: "Suresh Deshmukh",
+            contact_number: "+919284223412",
+            vehicle_type: "10-Ton Emergency Ration Freight",
+            depot: "Loni Kalbhor Freight Yard"
+          },
+          {
+            truck_plate: "MH-11-AA-3049",
+            driver_name: "Vikram Shinde",
+            contact_number: "+919284223412",
+            vehicle_type: "Mobile ICU Medical Supply Van",
+            depot: "Swargate Transport Hub"
+          }
+        ];
+
+        // 2. Query Supabase drivers if client initialized
+        if (supabaseClient) {
+          try {
+            const { data: dbDrivers, error } = await supabaseClient
+              .from('drivers')
+              .select('*');
+            
+            if (error) {
+              console.warn('Supabase query error:', error.message);
+            } else if (dbDrivers && dbDrivers.length > 0) {
+              dbDrivers.forEach(dbD => {
+                if (!dbD.truck_plate) return;
+                const matchedIdx = driversList.findIndex(d => String(d.truck_plate).toUpperCase() === String(dbD.truck_plate).toUpperCase());
+                const mappedObj = {
+                  truck_plate: String(dbD.truck_plate).toUpperCase(),
+                  driver_name: sanitizeField(dbD.driver_name, "Registered Driver"),
+                  contact_number: sanitizeField(dbD.contact_number, "+919284223412"),
+                  vehicle_type: sanitizeField(dbD.vehicle_type, "Freight Carrier"),
+                  depot: sanitizeField(dbD.depot, "Freight Depot")
+                };
+                if (matchedIdx !== -1) {
+                  driversList[matchedIdx] = mappedObj;
+                } else {
+                  driversList.unshift(mappedObj); // Put new database registrations at the top!
+                }
+              });
+            }
+          } catch (dbErr) {
+            console.warn('Supabase DB fetch fallback triggered:', dbErr);
+          }
+        }
+
+        // 2b. Fallback: Also check LocalStorage to ensure locally registered driver is visible immediately
+        try {
+          const localData = localStorage.getItem('wari_truck_data');
+          if (localData) {
+            const localD = JSON.parse(localData);
+            if (localD && localD.truck) {
+              const matchedIdx = driversList.findIndex(d => String(d.truck_plate).toUpperCase() === String(localD.truck).toUpperCase());
+              const mappedObj = {
+                truck_plate: String(localD.truck).toUpperCase(),
+                driver_name: sanitizeField(localD.driver, "Registered Driver"),
+                contact_number: sanitizeField(localD.phone, "+919284223412"),
+                vehicle_type: sanitizeField(localD.type, "Potable Water Tanker"),
+                depot: sanitizeField(localD.depot, "Hadapsar Goods Depot")
+              };
+              if (matchedIdx !== -1) {
+                driversList[matchedIdx] = mappedObj;
+              } else {
+                driversList.unshift(mappedObj); // Put local registrations at the top!
+              }
+            }
+          }
+        } catch (localErr) {
+          console.warn('LocalStorage driver parse error:', localErr);
+        }
+
+        // 3. Query python backend status to get current cleared/on_hold states
+        let activeStates = {};
+        let activeCount = 1;
+        let maxCapacity = 2;
+        try {
+          const res = await fetch('http://localhost:5005/api/truck-status');
+          const statusData = await res.json();
+          activeCount = statusData.active_count;
+          maxCapacity = statusData.max_capacity;
+          if (statusData.all_trucks) {
+            statusData.all_trucks.forEach(t => {
+              activeStates[String(t.truck_plate).toUpperCase()] = t.status;
+            });
+          }
+        } catch (err) {
+          console.warn('Backend server offline during init - using fallback statuses:', err);
+        }
+
+        // Update Wari Sector Capacity Badge
+        const capB = document.getElementById('activeWariCapacityBadge');
+        if (capB) {
+          capB.textContent = activeCount + ' / ' + maxCapacity + ' TRUCKS ACTIVE';
+          capB.style.color = activeCount >= 2 ? '#dc2626' : '#16a34a';
+        }
+
+        // 4. Render drivers dynamically
+        const tbody = document.getElementById('truckGateTableBody');
+        if (tbody) {
+          tbody.innerHTML = '';
+          driversList.forEach(d => {
+            const currentStatus = activeStates[String(d.truck_plate).toUpperCase()] || "PENDING";
+            
+            let badgeHtml = '';
+            if (currentStatus === 'CLEARED') {
+              badgeHtml = `<span id="badge-${d.truck_plate}" class="badge badge-success" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;">[CLEARED - INSIDE SECTOR]</span>`;
+            } else if (currentStatus === 'ON_HOLD') {
+              badgeHtml = `<span id="badge-${d.truck_plate}" class="badge" style="background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3;">[ON HOLD - CAPACITY FULL]</span>`;
+            } else {
+              badgeHtml = `<span id="badge-${d.truck_plate}" class="badge" style="background: #fffbe6; color: #d97706; border: 1px solid #fef08a;">[PENDING APPROVAL]</span>`;
+            }
+
+            const escapedPlate = String(d.truck_plate).replace(/'/g, "\\'");
+            const escapedName = String(d.driver_name).replace(/'/g, "\\'");
+            const escapedContact = String(d.contact_number).replace(/'/g, "\\'");
+            const escapedType = String(d.vehicle_type).replace(/'/g, "\\'");
+            const escapedDepot = String(d.depot).replace(/'/g, "\\'");
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="font-weight: 700; color: #0f172a;">
+                <div>${d.truck_plate}</div>
+                <div style="font-size: 12px; font-weight: 500; color: #64748b;">Driver: ${d.driver_name}</div>
+              </td>
+              <td style="font-size: 13px; color: #334155; font-weight: 600;">${d.vehicle_type}</td>
+              <td style="font-size: 13px; color: #64748b;">${d.depot}</td>
+              <td>${badgeHtml}</td>
+              <td>
+                <button class="btn-table-action" style="${currentStatus === 'CLEARED' ? '' : 'background: #0f172a; color: #ffffff;'}" onclick="dispatchTruckBackend('${escapedPlate}', '${escapedName}', '${escapedContact}', '${escapedType}', '${escapedDepot}')">
+                  Approve &amp; Send Twilio SMS
+                </button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      } catch (globalErr) {
+        console.error('Global loadSupabaseDrivers error:', globalErr);
+        renderDriversListFallback();
+      }
+    }
+
+    async function dispatchTruckBackend(plate, driver, phone, vType, depot) {
+      try {
+        const response = await fetch('http://localhost:5005/api/approve-truck', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            truck_plate: plate,
+            driver_name: driver,
+            phone: phone,
+            type: vType,
+            depot: depot
+          })
+        });
+        const res = await response.json();
+
+        if (res.status === 'APPROVED') {
+          var smsNotice = res.sms_sent ? (' (Twilio Message SID: ' + res.sms_sid + ')') : ' (SMS triggered to ' + res.to_phone + ')';
+          showToast('✅ ' + res.message + smsNotice);
+        } else {
+          showToast('⚠️ ' + res.message);
+        }
+        // Dynamically refresh status badge values
+        loadSupabaseDrivers();
+      } catch (err) {
+        console.error('Backend dispatch error:', err);
+        showToast('⚠️ Backend server error: Please verify python3 server.py is running on port 5005.');
+      }
+    }
+
+    function activateNav(el) {
+      document.querySelectorAll('.nav-item').forEach(function(item) {
+        item.classList.remove('active');
+      });
+      el.classList.add('active');
+    }
+
+    function logoutUser() {
+      sessionStorage.clear();
+      localStorage.removeItem('wari_truck_data');
+      window.location.href = './login.html';
+    }
+
+    // ── Init ──
+    document.addEventListener('DOMContentLoaded', function () {
+      try {
+        initMap();
+      } catch (e) {
+        console.error('initMap error:', e);
+      }
+      try {
+        runConvoySimulation();
+      } catch (e) {
+        console.error('runConvoySimulation error:', e);
+      }
+      try {
+        loadSupabaseDrivers();
+      } catch (e) {
+        console.error('loadSupabaseDrivers error:', e);
+      }
+    });
+  </script>
+</body>
+</html>
