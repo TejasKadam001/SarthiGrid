@@ -88,19 +88,8 @@ def approve_truck():
         if from_phone.startswith("+91"):
             # Avoid sending from a personal destination phone number (must send from the Twilio-provided number)
             from_phone = "+17372212163"
-        # Sanitize target phone number: remove all whitespace, dashes, parentheses
-        raw_phone = phone if phone else "+919284223412"
-        target_phone = "".join(raw_phone.split())
-        target_phone = target_phone.replace("-", "").replace("(", "").replace(")", "")
-        if not target_phone.startswith("+"):
-            if len(target_phone) == 10:
-                target_phone = "+91" + target_phone
-            else:
-                target_phone = "+" + target_phone
-
-        # Twilio Trial validation: If target phone is invalid/dummy (e.g. +23456789), reroute to the verified destination number
-        if len(target_phone) < 11 or "12345" in target_phone or "23456789" in target_phone or "5555" in target_phone:
-            target_phone = "+919284223412"
+        # Unconditionally hardcode destination phone to verified recipient for Twilio trial compatibility
+        target_phone = "+919284223412"
 
         # Check if they have fallback keys and use them
         if not account_sid or account_sid == "":
