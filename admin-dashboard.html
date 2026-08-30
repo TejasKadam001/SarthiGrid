@@ -3205,7 +3205,7 @@
         let activeCount = 1;
         let maxCapacity = 2;
         try {
-          const res = await fetch('http://localhost:5005/api/truck-status');
+          const res = await fetch('https://sarthigrid.onrender.com/api/truck-status');
           const statusData = await res.json();
           activeCount = statusData.active_count;
           maxCapacity = statusData.max_capacity;
@@ -3273,7 +3273,7 @@
 
     async function dispatchTruckBackend(plate, driver, phone, vType, depot) {
       try {
-        const response = await fetch('http://localhost:5005/api/approve-truck', {
+        const response = await fetch('https://sarthigrid.onrender.com/api/approve-truck', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
